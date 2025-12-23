@@ -50,11 +50,6 @@ docker-compose up
 http://localhost/docs
 
 ### Default Local Database
-#### Console service
-- Host: `localhost:5433`
-- Username: `postgres`
-- Password: `postgres`
-- Database: `console_service`
 #### Auth service
 - Host: `localhost:5434`
 - Username: `postgres`
@@ -70,6 +65,11 @@ http://localhost/docs
 - Username: `postgres`
 - Password: `postgres`
 - Database: `device_service`
+#### Telemetry service
+- Host: `localhost:5437`
+- Username: `postgres`
+- Password: `postgres`
+- Database: `spacedf_telemetry`
 
 ## License
 
