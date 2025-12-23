@@ -1,0 +1,14 @@
+authentication = [
+  {
+    disconnect_after_expire = true
+    from = username
+    enable = true
+    endpoint = "http://auth/auth/api/.well-known/jwks.json"
+    headers {Accept = "application/json"}
+    mechanism = jwt
+    refresh_interval = 300
+    ssl {enable = false, verify = verify_peer}
+    use_jwks = true
+    verify_claims {}
+  }
+]

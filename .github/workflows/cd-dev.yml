@@ -1,0 +1,39 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    name: Deploy spacedf-backend
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            DIR="$HOME/code"
+
+            # Clone repo if it doesn't exist
+            if [ ! -d "$DIR" ]; then
+              git clone -b ${{ github.ref_name }} --recurse-submodules git@github.com:Space-DF/spacedf-backend.git "$DIR"
+              cd "$DIR" || exit
+            else
+              cd "$DIR" || exit
+              git fetch --all
+              git reset --hard origin/${{ github.ref_name }}
+              git pull
+              git submodule update --init --recursive
+            fi
+
+            docker compose -f ./docker-compose.dev.yml -p spacedf-backend stop
+            docker compose -f ./docker-compose.dev.yml -p spacedf-backend up -d --build
