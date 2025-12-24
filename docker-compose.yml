@@ -28,12 +28,17 @@ services:
   emqx:
     container_name: emqx
     hostname: emqx
-    image: emqx/emqx:5.7.1
+    build:
+      context: ./emqx
+      dockerfile: Dockerfile
     environment:
       - EMQX_AUTHENTICATION__1__MECHANISM=jwt
       - EMQX_AUTHENTICATION__1__USE_JWKS=true
       - EMQX_AUTHENTICATION__1__ENDPOINT=http://auth/auth/api/.well-known/jwks.json
       - EMQX_AUTHENTICATION__1__FROM=username
+      # Client Attributes - extract organization from user_property
+      - EMQX_MQTT__CLIENT_ATTRS_INIT__1__EXPRESSION=user_property.organization
+      - EMQX_MQTT__CLIENT_ATTRS_INIT__1__SET_AS_ATTR=organization
       # Dashboard login
       - EMQX_DASHBOARD__DEFAULT_USERNAME=${EMQX_USERNAME}
       - EMQX_DASHBOARD__DEFAULT_PASSWORD=${EMQX_PASSWORD}
@@ -41,6 +46,11 @@ services:
       - EMQX_AUTHENTICATION__2__MECHANISM=password_based
       - EMQX_AUTHENTICATION__2__BACKEND=built_in_database
       - EMQX_AUTHENTICATION__2__ENABLE=true
+      # Service MQTT credentials for auto-creation
+      - MQTT_MPA_USERNAME=${MQTT_USERNAME}
+      - MQTT_MPA_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_BROKER_BRIDGE_USERNAME=${MQTT_BROKER_BRIDGE_USERNAME}
+      - MQTT_BROKER_BRIDGE_PASSWORD=${MQTT_BROKER_BRIDGE_PASSWORD}
       # RabbitMQ MQTT Connector Configuration
       - EMQX_connectors__mqtt__rabbitmq__server=rabbitmq:1883
       - EMQX_connectors__mqtt__rabbitmq__pool_size=8
@@ -73,7 +83,11 @@ services:
       rabbitmq:
         condition: service_started
     restart: unless-stopped
-
+    healthcheck:
+      test: ["CMD", "emqx", "ctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   # bootstrap service
   bootstrap:
     container_name: bootstrap_service
