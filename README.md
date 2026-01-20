@@ -1,15 +1,4 @@
-<p align="center">
-  <a href="https://www.digitalfortress.dev/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://digitalfortress-s3-bucket-vpcxuhhdwecuj.s3.amazonaws.com/Group+1410083530.svg">
-      <img alt="Digital Fortress logo" src="https://digitalfortress-s3-bucket-vpcxuhhdwecuj.s3.amazonaws.com/Group+1410083530.svg">
-    </picture>    
-  </a>
-</p>
-
----
-
-# Django template
+# SpaceDF Core
 
 ## Prerequisites
 - [Docker](https://www.docker.com/)
@@ -43,18 +32,43 @@ brew install docker-compose
 
 ### Launch
 ```commandline
-docker-compose up
+chmod +x entrypoint.sh
+./entrypoint.sh
 ```
 
 ### API documentation
 http://localhost/docs
 
-### Default Local Database
+## Services Overview
+
+### Python Django Services
+- **Auth Service** - Authentication and OAuth credentials management
+- **Bootstrap Service** - Initial setup and configuration service
+- **Dashboard Service** - Dashboard and UI backend
+- **Device Service** - Device management service
+- **Django Common Utils** - Shared utilities library
+
+### Go Services
+- **Broker Bridge Service** - Bridge between message brokers
+- **MPA Service** - Multi-Protocol Adapter service
+- **Telemetry Service** - Telemetry data collection and processing
+- **Transformer Service** - Data transformation service
+
+### Infrastructure
+- **EMQX** - MQTT message broker
+- **HAProxy** - Load balancer and reverse proxy
+
+### Default Local Database Configuration
 #### Auth service
 - Host: `localhost:5434`
 - Username: `postgres`
 - Password: `postgres`
 - Database: `auth_service`
+#### Bootstrap service
+- Host: `localhost:5433`
+- Username: `postgres`
+- Password: `postgres`
+- Database: `bootstrap_service`
 #### Dashboard service
 - Host: `localhost:5435`
 - Username: `postgres`
@@ -72,26 +86,7 @@ http://localhost/docs
 - Database: `spacedf_telemetry`
 
 ## License
+Licensed under the Apache License, Version 2.0  
+See the LICENSE file for details.
 
-This project is Copyright (c) 2023 and onwards Digital Fortress. It is free software and may be redistributed under the terms specified in the [LICENSE] file.
-
-[LICENSE]: /LICENSE
-
-## About
-<a href="https://www.digitalfortress.dev/">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://digitalfortress-s3-bucket-vpcxuhhdwecuj.s3.amazonaws.com/Group+1410083530.svg">
-    <img alt="Digital Fortress logo" src="https://digitalfortress-s3-bucket-vpcxuhhdwecuj.s3.amazonaws.com/Group+1410083530.svg" width="160">
-  </picture>
-</a>
-
-This project is made and maintained by Digital Fortress.
-
-We are an experienced team in R&D, software, hardware, cross-platform mobile and DevOps.
-
-See more of [our projects][projects] or do you need to complete one?
-
--> [Let’s connect with us][website]
-
-[projects]: https://github.com/digitalfortress-dev
-[website]: https://www.digitalfortress.dev
+[![SpaceDF - A project from Digital Fortress](https://df.technology/images/SpaceDF.png)](https://df.technology/)

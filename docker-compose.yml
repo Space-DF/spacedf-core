@@ -12,17 +12,18 @@ services:
       - "15672:15672"
     command: >
       bash -c "
-      rabbitmq-plugins enable rabbitmq_mqtt &&
+      rabbitmq-plugins enable --offline rabbitmq_mqtt &&
       rabbitmq-server
       "
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 10s
-      timeout: 30s
+      timeout: 60s
       retries: 5
-      start_period: 60s
+      start_period: 100s
 
   # EMQX
   emqx:
@@ -81,13 +82,31 @@ services:
       - emqx-etc:/opt/emqx/etc
     depends_on:
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "emqx", "ctl", "status"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  bootstrap_postgres:
+    container_name: bootstrap_postgres
+    hostname: bootstrap_postgres
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${BOOTSTRAP_POSTGRES_PASSWORD}
+      - POSTGRES_DB=bootstrap_service
+    ports:
+      - "5433:5432"
+    volumes:
+      - bootstrap-postgres-vlm:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready --username=$$POSTGRES_USER && psql --username=$$POSTGRES_USER --list"
+      timeout: 10s
+      retries: 20
+
   # bootstrap service
   bootstrap:
     container_name: bootstrap_service
@@ -95,13 +114,30 @@ services:
       context: .
       dockerfile: ./bootstrap-service/Dockerfile
     environment:
-      ENV: dev
+      ENV: ${ENV}
       EMQX_USERNAME: ${EMQX_USERNAME}
       EMQX_PASSWORD: ${EMQX_PASSWORD}
       ORG_NAME: ${ORG_NAME}
       ORG_SLUG: ${ORG_SLUG}
       OWNER_EMAIL: ${OWNER_EMAIL}
       OWNER_PASSWORD: ${OWNER_PASSWORD}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      REDIS_HOST: ${REDIS_HOST}
+      HOST: ${HOST}
+      DB_NAME: bootstrap_service
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${BOOTSTRAP_POSTGRES_PASSWORD}
+      DB_HOST: bootstrap_postgres
+      DB_PORT: 5432
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq
@@ -121,6 +157,7 @@ services:
         condition: service_healthy
       telemetry:
         condition: service_healthy
+    restart: unless-stopped
 
   # Auth database
   auth_postgres:
@@ -143,11 +180,10 @@ services:
   # Auth service
   auth:
     container_name: auth_service
-    build:
-      context: .
-      dockerfile: ./auth-service/Dockerfile
+    image: ghcr.io/space-df/auth-service:latest
+    pull_policy: always
     environment:
-      ENV: dev
+      ENV: ${ENV}
       SECRET_KEY: ${AUTH_SECRET_KEY}
       DB_NAME: auth_service
       DB_USERNAME: postgres
@@ -183,14 +219,15 @@ services:
       auth_postgres:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
+    restart: unless-stopped
     healthcheck:
       test:
         ["CMD-SHELL", "curl -fsS http://localhost/auth/api/health || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 100s
 
   # Dashboard database
   dashboard_postgres:
@@ -213,11 +250,10 @@ services:
   # Dashboard service
   dashboard:
     container_name: dashboard_service
-    build:
-      context: .
-      dockerfile: ./dashboard-service/Dockerfile
+    image: ghcr.io/space-df/dashboard-service:latest
+    pull_policy: always
     environment:
-      ENV: dev
+      ENV: ${ENV}
       SECRET_KEY: ${DASHBOARD_SECRET_KEY}
       DB_NAME: dashboard_service
       DB_USERNAME: postgres
@@ -236,7 +272,8 @@ services:
       dashboard_postgres:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
+    restart: unless-stopped
     healthcheck:
       test:
         [
@@ -246,7 +283,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 100s
 
   # Device database
   device_postgres:
@@ -269,11 +306,10 @@ services:
   # Device service
   device:
     container_name: device_service
-    build:
-      context: .
-      dockerfile: ./device-service/Dockerfile
+    image: ghcr.io/space-df/device-service:latest
+    pull_policy: always
     environment:
-      ENV: dev
+      ENV: ${ENV}
       SECRET_KEY: ${DEVICE_SECRET_KEY}
       DB_NAME: device_service
       DB_USERNAME: postgres
@@ -296,21 +332,21 @@ services:
       device_postgres:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
+    restart: unless-stopped
     healthcheck:
       test:
         ["CMD-SHELL", "curl -fsS http://localhost/device/api/health || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 100s
 
   # Transformer service (Go) - RabbitMQ Consumer
   transformer:
     container_name: transformer_service
-    build:
-      context: ./transformer-service
-      dockerfile: Dockerfile
+    image: ghcr.io/space-df/transformer-service:latest
+    pull_policy: always
     hostname: transformer
     environment:
       - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
@@ -334,7 +370,7 @@ services:
       - DEVICE_CACHE_REDIS_DIAL_TIMEOUT_MS=2000
     depends_on:
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
       emqx:
         condition: service_started
     links:
@@ -345,47 +381,11 @@ services:
       - ./transformer-service:/transformer-service
       - transformer-logs:/app/logs
 
-  # Logrotate service for transformer logs
-  transformer-logrotate:
-    container_name: transformer_logrotate
-    image: alpine:3.18
-    hostname: transformer-logrotate
-    environment:
-      - TZ=UTC
-    volumes:
-      - transformer-logs:/app/logs
-      - ./transformer-service/logrotate.conf:/etc/logrotate.d/transformer:ro
-    command: >
-      sh -c "
-      apk add --no-cache logrotate dcron &&
-      echo '0 0 * * * /usr/sbin/logrotate -f /etc/logrotate.d/transformer' > /etc/crontabs/root &&
-      crond -f -L /dev/stdout
-      "
-    restart: unless-stopped
-    privileged: true
-    depends_on:
-      - transformer
-
-  # Transformer logs HTTP server for auto-loading logs in visualization tool
-  transformer-logs-server:
-    image: python:3.12-alpine
-    container_name: transformer_logs_server
-    working_dir: /srv
-    command: python3 -m http.server 8081
-    volumes:
-      - ./transformer-service:/srv:ro
-    ports:
-      - "8081:8081"
-    restart: unless-stopped
-    depends_on:
-      - transformer
-
   # Broker Bridge Service - AMQP to EMQX MQTT bridge
   broker-bridge:
     container_name: broker_bridge_service
-    build:
-      context: ./broker-bridge-service
-      dockerfile: Dockerfile
+    image: ghcr.io/space-df/broker-bridge-service:latest
+    pull_policy: always
     hostname: broker-bridge
     environment:
       - MQTT_BROKER=emqx
@@ -418,16 +418,23 @@ services:
     build:
       context: .
       dockerfile: ./haproxy/Dockerfile
-      args:
-        HOST: ${HOST}
-        JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+    networks:
+      default:
+        aliases:
+          - default-org.haproxy
+    environment:
+      ENV: ${ENV}
+      HOST: ${HOST}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
     hostname: haproxy
     ports:
-      - "3000:3000"
+      - "8000:3000"
       - "443:443"
       - "8884:8884"
       - "8883:8883"
     depends_on:
+      bootstrap:
+        condition: service_started
       auth:
         condition: service_started
       dashboard:
@@ -441,14 +448,16 @@ services:
       docs:
         condition: service_started
     links:
+      - bootstrap
       - auth
       - dashboard
       - device
       - telemetry
       - mpa
       - docs
+    restart: unless-stopped
     volumes:
-      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ./haproxy/config:/usr/local/etc/haproxy/config
       - ./haproxy/handlers:/usr/local/etc/haproxy/handlers
       - ./haproxy/routes:/usr/local/share/lua/5.4/routes
       - ./haproxy/certs:/usr/local/etc/haproxy/certs:ro
@@ -467,9 +476,8 @@ services:
   # MPA Service
   mpa:
     container_name: mpa_service
-    build:
-      context: ./mpa-service
-      dockerfile: Dockerfile
+    image: ghcr.io/space-df/mpa-service:latest
+    pull_policy: always
     hostname: mpa
     environment:
       - MQTT_BROKER=${MQTT_BROKER}
@@ -491,7 +499,7 @@ services:
       - rabbitmq
     restart: unless-stopped
     healthcheck:
-      test: "curl --silent --fail http://localhost:80/health > /dev/null || exit 1"
+      test: "curl --silent --fail http://localhost/health > /dev/null || exit 1"
       interval: 30s
       timeout: 10s
       retries: 3
@@ -516,13 +524,12 @@ services:
       retries: 20
     restart: unless-stopped
 
-  # Telemetry Service - Consumes device telemetry data and stores in TimescaleDB
+  # Telemetry Service
   telemetry:
     container_name: telemetry_service
     hostname: telemetry
-    build:
-      context: ./telemetry-service
-      dockerfile: Dockerfile
+    image: ghcr.io/space-df/telemetry-service:latest
+    pull_policy: always
     environment:
       - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
       - DB_NAME=spacedf_telemetry
@@ -534,7 +541,7 @@ services:
       - "8080:8080" # API port
     depends_on:
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
       timescaledb:
         condition: service_healthy
     restart: unless-stopped
@@ -551,7 +558,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 100s
 
   docs:
     build:
@@ -573,6 +580,47 @@ services:
     volumes:
       - ./docs:/docs
 
+  # Web Application
+  web:
+    image: ghcr.io/space-df/spacedf-web-app:latest
+    pull_policy: always
+    platform: linux/amd64
+    environment:
+      NEXTAUTH_URL: ${DASHBOARD_NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${DASHBOARD_NEXTAUTH_SECRET}
+      MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN}
+      AUTH_API: ${PORTAL_AUTH_API}
+      SPACE_API_KEY: ${SPACE_API_KEY}
+      DASHBOARD_MQTT_USERNAME: ${DASHBOARD_MQTT_USERNAME}
+      DASHBOARD_MQTT_PASSWORD: ${DASHBOARD_MQTT_PASSWORD}
+      DASHBOARD_MQTT_PORT: ${DASHBOARD_MQTT_PORT}
+      DASHBOARD_MQTT_PROTOCOL: ${DASHBOARD_MQTT_PROTOCOL}
+      DASHBOARD_MQTT_BROKER: ${DASHBOARD_MQTT_BROKER}
+      DEBUG: "True"
+    ports:
+      - "3000:3000"
+    depends_on:
+      haproxy:
+        condition: service_started
+    restart: unless-stopped
+
+  # Admin Portal Application
+  auth-portal:
+    image: ghcr.io/space-df/spacedf-admin-portal:latest
+    pull_policy: always
+    platform: linux/amd64
+    environment:
+      NEXTAUTH_URL: ${PORTAL_NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${PORTAL_NEXTAUTH_SECRET}
+      AUTH_API: ${PORTAL_AUTH_API}
+      DEBUG: "True"
+    ports:
+      - "3001:3001"
+    depends_on:
+      haproxy:
+        condition: service_started
+    restart: unless-stopped
+
 volumes:
   auth-postgres-vlm:
   dashboard-postgres-vlm:
@@ -584,3 +632,4 @@ volumes:
   transformer-logs:
   rabbitmq_data:
   timescaledb-data:
+  bootstrap-postgres-vlm:
