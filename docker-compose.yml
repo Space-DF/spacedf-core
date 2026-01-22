@@ -23,7 +23,7 @@ services:
       interval: 10s
       timeout: 60s
       retries: 5
-      start_period: 100s
+      start_period: 120s
 
   # EMQX
   emqx:
@@ -227,7 +227,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 100s
+      start_period: 120s
 
   # Dashboard database
   dashboard_postgres:
@@ -283,7 +283,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 100s
+      start_period: 120s
 
   # Device database
   device_postgres:
@@ -340,7 +340,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 100s
+      start_period: 120s
 
   # Transformer service (Go) - RabbitMQ Consumer
   transformer:
@@ -558,7 +558,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 100s
+      start_period: 120s
 
   docs:
     build:
