@@ -110,9 +110,8 @@ services:
   # bootstrap service
   bootstrap:
     container_name: bootstrap_service
-    build:
-      context: .
-      dockerfile: ./bootstrap-service/Dockerfile
+    image: ghcr.io/space-df/bootstrap-service:latest
+    pull_policy: always
     environment:
       ENV: ${ENV}
       EMQX_USERNAME: ${EMQX_USERNAME}
@@ -415,9 +414,8 @@ services:
 
   haproxy:
     container_name: haproxy
-    build:
-      context: .
-      dockerfile: ./haproxy/Dockerfile
+    image: ghcr.io/space-df/haproxy:latest
+    pull_policy: always
     networks:
       default:
         aliases:
@@ -587,9 +585,9 @@ services:
     platform: linux/amd64
     environment:
       NEXTAUTH_URL: ${DASHBOARD_NEXTAUTH_URL}
+      MAPTILER_API_KEY: ${MAPTILER_API_KEY}
       NEXTAUTH_SECRET: ${DASHBOARD_NEXTAUTH_SECRET}
-      MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN}
-      AUTH_API: ${PORTAL_AUTH_API}
+      AUTH_API: ${ASHBOARD_AUTH_API}
       SPACE_API_KEY: ${SPACE_API_KEY}
       DASHBOARD_MQTT_USERNAME: ${DASHBOARD_MQTT_USERNAME}
       DASHBOARD_MQTT_PASSWORD: ${DASHBOARD_MQTT_PASSWORD}

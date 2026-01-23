@@ -284,8 +284,6 @@ Each service requires a unique secret key for encryption and data protection:
 
 **SPACE_API_KEY** - API key for Space-related operations and integrations.
 
-**MAPBOX_ACCESS_TOKEN** - Mapbox API token for mapping and location services. Required for map features.
-
 #### Application Settings
 
 **DEFAULT_TENANT_HOST** - Default tenant hostname for multi-tenant setup.
