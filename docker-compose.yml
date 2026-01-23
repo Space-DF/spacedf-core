@@ -420,7 +420,7 @@ services:
     networks:
       default:
         aliases:
-          - default-org.haproxy
+          - ${ORG_SLUG}.haproxy
     environment:
       HOST: ${HOST}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
