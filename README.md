@@ -1,60 +1,331 @@
-<p align="center">
-  <a href="https://www.digitalfortress.dev/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://digitalfortress-s3-bucket-vpcxuhhdwecuj.s3.amazonaws.com/Group+1410083530.svg">
-      <img alt="Digital Fortress logo" src="https://digitalfortress-s3-bucket-vpcxuhhdwecuj.s3.amazonaws.com/Group+1410083530.svg">
-    </picture>    
-  </a>
-</p>
-
----
-
-# Django template
+# SpaceDF Core
 
 ## Prerequisites
 - [Docker](https://www.docker.com/)
-- Docker compose
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Clone source code
+## Quick Start
 
-```
+### 1. Clone the Repository
+
+```bash
 git clone -b dev --recurse-submodules git@github.com:Space-DF/spacedf-backend.git
-```
-
-To update submodules in exist directory
-
-```
+cd spacedf-backend
 git submodule update --init --recursive
 ```
 
-## Setup
+### 2. Create Environment Configuration
 
-### Setup environment
+Create `.env` file from `.env.example`:
 
-1. Setup [Docker](https://www.docker.com/)
-```commandline
-brew install colima
-colima start
-```
-2. Setup docker-compose
-```commandline
-brew install docker-compose
+```bash
+cp .env.example .env
 ```
 
-### Launch
-```commandline
-docker-compose up
+**Essential variables to configure:**
+
+```bash
+# Organization
+ORG_NAME="Your Organization"
+ORG_SLUG="your-org"
+OWNER_EMAIL="admin@example.com"
+OWNER_PASSWORD="SecurePass123#"
+
+# Auto-generate JWT keys (run these commands to generate)
+# openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_key_size:2048
+# openssl rsa -in private_key.pem -pubout -out public_key.pem
+# Then paste the contents of private_key.pem and public_key.pem below:
+
+JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 ```
 
-### API documentation
-http://localhost/docs
+For detailed information on all environment variables, see the **Environment Configuration (.env)** section below.
 
-### Default Local Database
+### 3. Start Services
+
+```bash
+chmod +x entrypoint.sh
+./entrypoint.sh
+```
+
+### 4. Access Services
+
+Once ready, access:
+- **Frontend Admin**: http://localhost:3001
+- **Frontend Dashboard**: http://your-org.localhost:3000
+- **API Docs**: http://localhost:8000/docs
+- **EMQX Dashboard**: http://localhost:18083
+- **RabbitMQ**: http://localhost:15672
+
+## Common Commands
+
+```bash
+# View logs
+docker-compose -f docker-compose.yml -p spacedf-core logs -f
+
+# Stop services
+docker-compose -f docker-compose.yml -p spacedf-core stop
+
+# Restart specific service
+docker-compose -f docker-compose.yml -p spacedf-core restart auth
+
+# Fresh start (removes data)
+docker-compose -f docker-compose.yml -p spacedf-core down -v
+./entrypoint.sh
+```
+
+## Troubleshooting
+
+**Services not starting**: Check logs with `docker-compose logs -f` and verify `.env` configuration
+
+**Port already in use**: Stop conflicting services or change port mappings in `docker-compose.yml`
+
+**Database issues**: Restart databases: `docker-compose restart auth_postgres bootstrap_postgres`
+
+**Services keep crashing**: Rebuild with `docker-compose down -v && docker-compose build --no-cache && ./entrypoint.sh`
+
+#### Core Environment Variables
+
+**ENV** - Deployment environment mode (dev, local, prod). Determines which HAProxy configuration and feature sets are active.
+- Default: `local`
+- Example: `dev` or `prod`
+
+**HOST** - External hostname for JWT issuer validation. This is the public-facing URL used for JWT token verification.
+- Default: `http://localhost:8000`
+- Example: `http://api.example.com`
+
+**HOST_FRONTEND_ADMIN** - Admin frontend URL for reference and configuration.
+- Default: `http://localhost:3001`
+- Example: `http://admin.example.com`
+
+#### Organization Configuration
+
+**ORG_NAME** - Display name of your organization, used in UI and initialization.
+- Default: `Default Organization`
+- Example: `My Company Inc.`
+
+**ORG_SLUG** - URL-safe identifier for your organization. Used in hostnames, aliases, and internal references. Should be lowercase with hyphens only.
+- Default: `default-org`
+- Example: `my-company`
+
+**OWNER_EMAIL** - Email address of the initial organization owner. This account is created during bootstrap.
+- Example: `admin@example.com`
+
+**OWNER_PASSWORD** - Password for the initial owner account. Should be strong and changed after first login.
+- Example: `changeme123#Test`
+
+#### HAProxy Configuration
+
+**ORG_SLUG** - Used to create dynamic network aliases like `${ORG_SLUG}.haproxy` for internal service communication.
+
+#### Database Configuration
+
+**AUTH_POSTGRES_PASSWORD** - Password for Auth Service PostgreSQL database.
+- Default: `postgres`
+- Database name: `auth_service`
+- Port: `5434`
+
+**BOOTSTRAP_POSTGRES_PASSWORD** - Password for Bootstrap Service PostgreSQL database.
+- Default: `postgres`
+- Database name: `bootstrap_service`
+- Port: `5433`
+
+**DASHBOARD_POSTGRES_PASSWORD** - Password for Dashboard Service PostgreSQL database.
+- Default: `postgres`
+- Database name: `dashboard_service`
+- Port: `5435`
+
+**DEVICE_POSTGRES_PASSWORD** - Password for Device Service PostgreSQL database.
+- Default: `postgres`
+- Database name: `device_service`
+- Port: `5436`
+
+**TIMESCALEDB_PASSWORD** - Password for TimescaleDB (used by Telemetry Service).
+- Default: `postgres`
+- Database name: `spacedf_telemetry`
+- Port: `5437`
+
+#### Service Secret Keys
+
+Each service requires a unique secret key for encryption and data protection:
+
+**AUTH_SECRET_KEY** - Secret key used by Auth Service for session encryption and token generation.
+
+**BOOTSTRAP_SECRET_KEY** - Secret key used by Bootstrap Service for setup operations.
+
+**DASHBOARD_SECRET_KEY** - Secret key used by Dashboard Service for authentication.
+
+**DEVICE_SECRET_KEY** - Secret key used by Device Service for secure operations.
+
+#### JWT Authentication
+
+**JWT_PRIVATE_KEY** - RSA private key used to sign JWT tokens. Keep this secure and never expose it.
+- Format: PEM-encoded RSA private key
+- Used by: Auth Service for token generation
+
+**JWT_PUBLIC_KEY** - RSA public key used to verify JWT tokens. Can be safely shared.
+- Format: PEM-encoded RSA public key
+- Used by: HAProxy and all services for token verification
+
+#### Message Broker Configuration
+
+**RABBITMQ_DEFAULT_USER** - Username for RabbitMQ message broker connection.
+- Default: `default`
+
+**RABBITMQ_DEFAULT_PASS** - Password for RabbitMQ message broker connection.
+- Default: `password`
+
+**REDIS_HOST** - Redis connection string for caching and session storage.
+- Default: `redis://redis:6379/1`
+- Format: `redis://[user:password@]host:port/database`
+
+#### MQTT/EMQX Broker Configuration
+
+**EMQX_HOST** - EMQX API endpoint for management operations.
+- Default: `http://emqx:18083/api/v5`
+
+**EMQX_USERNAME** - Username for EMQX dashboard and API access.
+- Default: `user1`
+
+**EMQX_PASSWORD** - Password for EMQX dashboard and API access.
+- Default: `password123`
+
+#### MPA Service MQTT Configuration
+
+**MQTT_BROKER** - Hostname of the MQTT broker (EMQX).
+- Default: `emqx`
+
+**MQTT_USERNAME** - MQTT username for MPA Service connection.
+- Default: `MPAService`
+
+**MQTT_PASSWORD** - MQTT password for MPA Service connection.
+- Default: `DF@1234`
+
+**MQTT_PORT** - MQTT broker port.
+- Default: `1883`
+
+**MQTT_CLIENT_ID** - Client identifier for MQTT connections from MPA Service.
+- Default: `mpa-service-mqtt-bridge`
+
+**MQTT_TOPIC** - Topic pattern for MPA Service to subscribe/publish. Use `{tenant}` placeholder for dynamic tenant names.
+- Default: `tenant/{tenant}/device/data`
+
+#### Broker Bridge Configuration
+
+**MQTT_BROKER_BRIDGE_USERNAME** - MQTT username for Broker Bridge Service.
+- Default: `BrokerBridgeService`
+
+**MQTT_BROKER_BRIDGE_PASSWORD** - MQTT password for Broker Bridge Service.
+- Default: `DF@1234`
+
+**MQTT_TOPICS** - Comma-separated list of MQTT topics for Broker Bridge to subscribe to. Supports wildcards.
+- Default: `tenant/+/transformed/device/location`
+
+#### AWS S3 Configuration
+
+**AWS_ACCESS_KEY_ID** - AWS IAM access key for S3 operations.
+
+**AWS_SECRET_ACCESS_KEY** - AWS IAM secret access key for S3 operations.
+
+**AWS_STORAGE_BUCKET_NAME** - Name of the S3 bucket for file storage.
+- Example: `spacedf-storage-bucket`
+
+**AWS_REGION** - AWS region where S3 bucket is located.
+- Default: `ap-southeast-1`
+
+#### Email Service Configuration
+
+**EMAIL_HOST_USER** - AWS SES SMTP username or email service credentials.
+
+**EMAIL_HOST_PASSWORD** - AWS SES SMTP password or email service credentials.
+
+**DEFAULT_FROM_EMAIL** - Default sender email address for all outgoing emails.
+- Example: `no-reply@example.com`
+
+#### OAuth Authentication (Google)
+
+**GOOGLE_CALLBACK_URL** - Google OAuth callback URL (redirect after login).
+- Example: `https://api.example.com/api/console/google/callback/`
+
+**GOOGLE_CLIENT_ID** - Google OAuth application client ID from Google Cloud Console.
+
+**GOOGLE_CLIENT_SECRET** - Google OAuth application client secret.
+
+#### OAuth Authentication (Apple)
+
+**APPLE_CLIENT_ID** - Apple OAuth application identifier.
+- Example: `com.example.app`
+
+**APPLE_CLIENT_SECRET** - Apple OAuth application secret.
+
+**APPLE_CLIENT_KEY** - Apple OAuth client key.
+
+**APPLE_CERTIFICATE_KEY** - Apple OAuth certificate private key (PEM format).
+
+#### NextAuth Configuration
+
+**PORTAL_NEXTAUTH_URL** - Portal NextAuth URL for authentication callbacks.
+- Default: `http://localhost:3001`
+
+**PORTAL_NEXTAUTH_SECRET** - Secret key for NextAuth portal encryption. Generate using: https://generate-secret.vercel.app/32
+- Must be a random 32-character string
+
+**DASHBOARD_NEXTAUTH_SECRET** - Secret key for dashboard NextAuth encryption.
+- Must be a random string
+
+**PORTAL_AUTH_API** - Auth API endpoint used by portal for authentication.
+- Default: `http://haproxy:3000`
+- This points to HAProxy which routes to Auth Service
+
+#### API Keys and Tokens
+
+**ROOT_API_KEY** - Master API key for privileged operations and admin access. Keep this secure.
+
+**SPACE_API_KEY** - API key for Space-related operations and integrations.
+
+#### Application Settings
+
+**DEFAULT_TENANT_HOST** - Default tenant hostname for multi-tenant setup.
+- Default: `localhost`
+
+**TELEMETRY_SERVICE_URL** - Endpoint for telemetry service API calls.
+- Default: `http://telemetry:8080`
+
+**CORS_ALLOWED_ORIGINS** - Comma-separated list of allowed origins for CORS. Controls which frontend URLs can access the API.
+- Default: `http://localhost,http://localhost:3000,http://localhost:3001`
+- Example: `http://localhost:3000,https://app.example.com`
+
+## Services Overview
+
+### Python Django Services
+- **Auth Service** - Authentication and OAuth credentials management
+- **Bootstrap Service** - Initial setup and configuration service
+- **Dashboard Service** - Dashboard and UI backend
+- **Device Service** - Device management service
+- **Django Common Utils** - Shared utilities library
+
+### Go Services
+- **Broker Bridge Service** - Bridge between message brokers
+- **MPA Service** - Multi-Protocol Adapter service
+- **Telemetry Service** - Telemetry data collection and processing
+- **Transformer Service** - Data transformation service
+
+### Infrastructure
+- **EMQX** - MQTT message broker
+- **HAProxy** - Load balancer and reverse proxy
+
+### Default Local Database Configuration
 #### Auth service
 - Host: `localhost:5434`
 - Username: `postgres`
 - Password: `postgres`
 - Database: `auth_service`
+#### Bootstrap service
+- Host: `localhost:5433`
+- Username: `postgres`
+- Password: `postgres`
+- Database: `bootstrap_service`
 #### Dashboard service
 - Host: `localhost:5435`
 - Username: `postgres`
@@ -72,26 +343,7 @@ http://localhost/docs
 - Database: `spacedf_telemetry`
 
 ## License
+Licensed under the Apache License, Version 2.0  
+See the LICENSE file for details.
 
-This project is Copyright (c) 2023 and onwards Digital Fortress. It is free software and may be redistributed under the terms specified in the [LICENSE] file.
-
-[LICENSE]: /LICENSE
-
-## About
-<a href="https://www.digitalfortress.dev/">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://digitalfortress-s3-bucket-vpcxuhhdwecuj.s3.amazonaws.com/Group+1410083530.svg">
-    <img alt="Digital Fortress logo" src="https://digitalfortress-s3-bucket-vpcxuhhdwecuj.s3.amazonaws.com/Group+1410083530.svg" width="160">
-  </picture>
-</a>
-
-This project is made and maintained by Digital Fortress.
-
-We are an experienced team in R&D, software, hardware, cross-platform mobile and DevOps.
-
-See more of [our projects][projects] or do you need to complete one?
-
--> [Let’s connect with us][website]
-
-[projects]: https://github.com/digitalfortress-dev
-[website]: https://www.digitalfortress.dev
+[![SpaceDF - A project from Digital Fortress](https://df.technology/images/SpaceDF.png)](https://df.technology/)
