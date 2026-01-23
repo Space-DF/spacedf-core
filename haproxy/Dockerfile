@@ -18,7 +18,7 @@ COPY haproxy/handlers /usr/local/etc/haproxy/handlers
 COPY haproxy/routes /usr/local/share/lua/5.4/routes
 
 # Copy entrypoint
-COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY haproxy/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 RUN chown -R haproxy:haproxy /usr/local/etc/haproxy
 
