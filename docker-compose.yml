@@ -414,14 +414,14 @@ services:
 
   haproxy:
     container_name: haproxy
-    image: ghcr.io/space-df/haproxy:latest
-    pull_policy: always
+    build:
+      context: .
+      dockerfile: ./haproxy/Dockerfile
     networks:
       default:
         aliases:
           - default-org.haproxy
     environment:
-      ENV: ${ENV}
       HOST: ${HOST}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
     hostname: haproxy

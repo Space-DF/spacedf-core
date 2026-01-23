@@ -1,0 +1,330 @@
+routes = {
+    -- --------------
+    -- Device
+    -- --------------
+    ["^/api/device%-models/?$"] = {
+        POST = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+      },
+      ["^/api/device%-models/[0-9a-f-]+/?$"] = {
+        PUT = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        PATCH = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        DELETE = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+      },
+      ["^/api/device%-spaces/?$"] = {
+        POST = {
+          service = "device",
+          auth_required = true,
+          role_required = "Admin",
+          space_required = true,
+          organization_required = false,
+          is_root_user_api = false,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = "Viewer",
+          space_required = true,
+          organization_required = false,
+          is_root_user_api = false,
+        },
+      },
+      ["^/api/device%-spaces/[0-9a-f-]+/?$"] = {
+        PUT = {
+          service = "device",
+          auth_required = true,
+          role_required = "Admin",
+          space_required = true,
+          organization_required = false,
+          is_root_user_api = false,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = "Viewer",
+          space_required = true,
+          organization_required = false,
+          is_root_user_api = false,
+        },
+        PATCH = {
+          service = "device",
+          auth_required = true,
+          role_required = "Editor",
+          space_required = true,
+          organization_required = false,
+          is_root_user_api = false,
+        },
+        DELETE = {
+          service = "device",
+          auth_required = true,
+          role_required = "Admin",
+          space_required = true,
+          organization_required = false,
+          is_root_user_api = false,
+        },
+      },
+      ["^/api/devices/bulk%-create/?$"] = {
+        POST = {
+          service = "device",
+          auth_required = true,
+          role_required = "Admin",
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+      },
+      ["^/api/devices/?$"] = {
+        POST = {
+          service = "device",
+          auth_required = true,
+          role_required = "Admin",
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = "Viewer",
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+      },
+      ["^/api/devices/[0-9a-f-]+/?$"] = {
+        PUT = {
+          service = "device",
+          auth_required = true,
+          role_required = "Editor",
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = "Viewer",
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        PATCH = {
+          service = "device",
+          auth_required = true,
+          role_required = "Editor",
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        DELETE = {
+          service = "device",
+          auth_required = true,
+          role_required = "Admin",
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+      },
+      ["^/api/devices/[^/]+/check/?$"] = {
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = true,
+          organization_required = false,
+          is_root_user_api = false,
+        },
+      },
+      ["^/api/manufacturers/?$"] = {
+        POST = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+      },
+      ["^/api/manufacturers/[0-9a-f-]+/?$"] = {
+        PUT = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        PATCH = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        DELETE = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+      },
+      ["^/api/network%-server/?$"] = {
+        POST = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+      },
+      ["^/api/network%-server/[0-9a-f-]+/?$"] = {
+        PUT = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        PATCH = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+        DELETE = {
+          service = "device",
+          auth_required = true,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = true,
+        },
+      },
+  ["^/api/device%-transformed%-data/?$"] = {
+    GET = {
+      service = "device",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    }
+  },
+  ["^/api/device%-transformed%-data/[0-9a-f-]+/?$"] = {
+    GET = {
+      service = "device",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    }
+  },
+  -- --------------
+  -- Trips
+  -- --------------
+  ["^/api/trips/?$"] = {
+    GET = {
+      service = "device",
+      auth_required = true,
+      role_required = "Viewer",
+      space_required = true,
+      organization_required = false,
+      is_root_user_api = false,
+    }
+  },
+  ["^/api/trips/[0-9a-f-]+/?$"] = {
+    GET = {
+      service = "device",
+      auth_required = true,
+      role_required = "Viewer",
+      space_required = true,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+}
+
+return routes

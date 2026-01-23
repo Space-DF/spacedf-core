@@ -18,10 +18,6 @@
 	path = django-common-utils
 	url = git@github.com:Space-DF/django-common-utils.git
 	branch = dev
-[submodule "haproxy"]
-	path = haproxy
-	url = git@github.com:Space-DF/haproxy.git
-	branch = dev
 [submodule "transformer-service"]
 	path = transformer-service
 	url = git@github.com:Space-DF/transformer-service.git

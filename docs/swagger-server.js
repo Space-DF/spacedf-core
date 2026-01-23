@@ -6,7 +6,6 @@ const app = express();
 const port = 3000;
 
 const openApiUrls = [
-  'http://console/console/docs/?format=openapi',
   'http://bootstrap/bootstrap/docs/?format=openapi',
   'http://auth/auth/docs/?format=openapi',
   'http://dashboard/dashboard/docs/?format=openapi',
