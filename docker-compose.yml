@@ -112,6 +112,7 @@ services:
     container_name: bootstrap_service
     image: ghcr.io/space-df/bootstrap-service:latest
     pull_policy: always
+    platform: linux/amd64
     environment:
       ENV: ${ENV}
       EMQX_USERNAME: ${EMQX_USERNAME}
@@ -181,6 +182,7 @@ services:
     container_name: auth_service
     image: ghcr.io/space-df/auth-service:latest
     pull_policy: always
+    platform: linux/amd64
     environment:
       ENV: ${ENV}
       SECRET_KEY: ${AUTH_SECRET_KEY}
@@ -223,10 +225,10 @@ services:
     healthcheck:
       test:
         ["CMD-SHELL", "curl -fsS http://localhost/auth/api/health || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
 
   # Dashboard database
   dashboard_postgres:
@@ -251,6 +253,7 @@ services:
     container_name: dashboard_service
     image: ghcr.io/space-df/dashboard-service:latest
     pull_policy: always
+    platform: linux/amd64
     environment:
       ENV: ${ENV}
       SECRET_KEY: ${DASHBOARD_SECRET_KEY}
@@ -279,10 +282,10 @@ services:
           "CMD-SHELL",
           "curl -fsS http://localhost/dashboard/api/health || exit 1",
         ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
 
   # Device database
   device_postgres:
@@ -307,6 +310,7 @@ services:
     container_name: device_service
     image: ghcr.io/space-df/device-service:latest
     pull_policy: always
+    platform: linux/amd64
     environment:
       ENV: ${ENV}
       SECRET_KEY: ${DEVICE_SECRET_KEY}
@@ -336,16 +340,17 @@ services:
     healthcheck:
       test:
         ["CMD-SHELL", "curl -fsS http://localhost/device/api/health || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
 
   # Transformer service (Go) - RabbitMQ Consumer
   transformer:
     container_name: transformer_service
     image: ghcr.io/space-df/transformer-service:latest
     pull_policy: always
+    platform: linux/amd64
     hostname: transformer
     environment:
       - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
@@ -385,6 +390,7 @@ services:
     container_name: broker_bridge_service
     image: ghcr.io/space-df/broker-bridge-service:latest
     pull_policy: always
+    platform: linux/amd64
     hostname: broker-bridge
     environment:
       - MQTT_BROKER=emqx
@@ -476,6 +482,7 @@ services:
     container_name: mpa_service
     image: ghcr.io/space-df/mpa-service:latest
     pull_policy: always
+    platform: linux/amd64
     hostname: mpa
     environment:
       - MQTT_BROKER=${MQTT_BROKER}
@@ -528,6 +535,7 @@ services:
     hostname: telemetry
     image: ghcr.io/space-df/telemetry-service:latest
     pull_policy: always
+    platform: linux/amd64
     environment:
       - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
       - DB_NAME=spacedf_telemetry
