@@ -35,6 +35,7 @@ env_vars = {
     'OWNER_EMAIL': 'admin@example.com',
     'OWNER_PASSWORD': 'changeme@Default123',
     'BOOTSTRAP_SECRET_KEY': os.environ['BSK'],
+    'AUTH_SECRET_KEY': os.environ['BSK'],
     'DEVICE_SECRET_KEY': os.environ['DSK'],
     'DASHBOARD_SECRET_KEY': os.environ['DBSK'],
     'DASHBOARD_MQTT_USERNAME': 'anonymous',
