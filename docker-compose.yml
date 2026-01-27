@@ -1,0 +1,640 @@
+services:
+  # RabbitMQ
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    command: >
+      bash -c "
+      rabbitmq-plugins enable --offline rabbitmq_mqtt &&
+      rabbitmq-server
+      "
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 120s
+
+  # EMQX
+  emqx:
+    container_name: emqx
+    hostname: emqx
+    build:
+      context: ./emqx
+      dockerfile: Dockerfile
+    environment:
+      - EMQX_AUTHENTICATION__1__MECHANISM=jwt
+      - EMQX_AUTHENTICATION__1__USE_JWKS=true
+      - EMQX_AUTHENTICATION__1__ENDPOINT=http://auth/auth/api/.well-known/jwks.json
+      - EMQX_AUTHENTICATION__1__FROM=username
+      # Client Attributes - extract organization from user_property
+      - EMQX_MQTT__CLIENT_ATTRS_INIT__1__EXPRESSION=user_property.organization
+      - EMQX_MQTT__CLIENT_ATTRS_INIT__1__SET_AS_ATTR=organization
+      # Dashboard login
+      - EMQX_DASHBOARD__DEFAULT_USERNAME=${EMQX_USERNAME}
+      - EMQX_DASHBOARD__DEFAULT_PASSWORD=${EMQX_PASSWORD}
+      # Enable built-in DB authentication
+      - EMQX_AUTHENTICATION__2__MECHANISM=password_based
+      - EMQX_AUTHENTICATION__2__BACKEND=built_in_database
+      - EMQX_AUTHENTICATION__2__ENABLE=true
+      # Service MQTT credentials for auto-creation
+      - MQTT_MPA_USERNAME=${MQTT_USERNAME}
+      - MQTT_MPA_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_BROKER_BRIDGE_USERNAME=${MQTT_BROKER_BRIDGE_USERNAME}
+      - MQTT_BROKER_BRIDGE_PASSWORD=${MQTT_BROKER_BRIDGE_PASSWORD}
+      # RabbitMQ MQTT Connector Configuration
+      - EMQX_connectors__mqtt__rabbitmq__server=rabbitmq:1883
+      - EMQX_connectors__mqtt__rabbitmq__pool_size=8
+      - EMQX_connectors__mqtt__rabbitmq__enable=true
+      - EMQX_connectors__mqtt__rabbitmq__username=${RABBITMQ_DEFAULT_USER}
+      - EMQX_connectors__mqtt__rabbitmq__password=${RABBITMQ_DEFAULT_PASS}
+      # Action authorization
+      - EMQX_AUTHORIZATION__SOURCES__1__TYPE=http
+      - EMQX_AUTHORIZATION__SOURCES__1__METHOD=post
+      - EMQX_AUTHORIZATION__SOURCES__1__URL=http://auth/api/mqtt/authorize?organization=$${client_attrs.organization}
+      - 'EMQX_AUTHORIZATION__SOURCES__1__BODY={"topic": "$${topic}", "username": "$${username}", "client_id": "$${clientid}"}'
+      # Actions Configuration
+      - EMQX_actions__mqtt__device_messages__connector=rabbitmq
+      - EMQX_actions__mqtt__device_messages__parameters__topic=$${topic}
+      - EMQX_actions__mqtt__device_messages__enable=true
+      # Rule Engine Configuration
+      - EMQX_rule_engine__rules__rabbitmq_device_messages__name=rabbitmq_device_messages
+      - EMQX_rule_engine__rules__rabbitmq_device_messages__sql=SELECT * FROM "tenant/+/device/data"
+      - EMQX_rule_engine__rules__rabbitmq_device_messages__actions=["mqtt:device_messages"]
+      - EMQX_rule_engine__rules__rabbitmq_device_messages__description=Forward tenant device messages to RabbitMQ MQTT
+      - EMQX_rule_engine__rules__rabbitmq_device_messages__enable=true
+    ports:
+      - "1883:1883"
+      - "18083:18083"
+    volumes:
+      - emqx-data:/opt/emqx/data
+      - emqx-log:/opt/emqx/log
+      - emqx-etc:/opt/emqx/etc
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "emqx", "ctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  bootstrap_postgres:
+    container_name: bootstrap_postgres
+    hostname: bootstrap_postgres
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${BOOTSTRAP_POSTGRES_PASSWORD}
+      - POSTGRES_DB=bootstrap_service
+    ports:
+      - "5433:5432"
+    volumes:
+      - bootstrap-postgres-vlm:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready --username=$$POSTGRES_USER && psql --username=$$POSTGRES_USER --list"
+      timeout: 10s
+      retries: 20
+
+  # bootstrap service
+  bootstrap:
+    container_name: bootstrap_service
+    image: ghcr.io/space-df/bootstrap-service:latest
+    pull_policy: always
+    platform: linux/amd64
+    environment:
+      ENV: ${ENV}
+      EMQX_USERNAME: ${EMQX_USERNAME}
+      EMQX_PASSWORD: ${EMQX_PASSWORD}
+      ORG_NAME: ${ORG_NAME}
+      ORG_SLUG: ${ORG_SLUG}
+      OWNER_EMAIL: ${OWNER_EMAIL}
+      OWNER_PASSWORD: ${OWNER_PASSWORD}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      REDIS_HOST: ${REDIS_HOST}
+      HOST: ${HOST}
+      DB_NAME: bootstrap_service
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${BOOTSTRAP_POSTGRES_PASSWORD}
+      DB_HOST: bootstrap_postgres
+      DB_PORT: 5432
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq
+      RABBITMQ_MANAGEMENT_API_URL: http://rabbitmq:15672
+      CELERY_BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq
+    hostname: bootstrap
+    links:
+      - rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      device:
+        condition: service_healthy
+      dashboard:
+        condition: service_healthy
+      telemetry:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Auth database
+  auth_postgres:
+    container_name: auth_postgres
+    hostname: auth_postgres
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${AUTH_POSTGRES_PASSWORD}
+      - POSTGRES_DB=auth_service
+    ports:
+      - "5434:5432"
+    volumes:
+      - auth-postgres-vlm:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready --username=$$POSTGRES_USER && psql --username=$$POSTGRES_USER --list"
+      timeout: 10s
+      retries: 20
+
+  # Auth service
+  auth:
+    container_name: auth_service
+    image: ghcr.io/space-df/auth-service:latest
+    pull_policy: always
+    platform: linux/amd64
+    environment:
+      ENV: ${ENV}
+      SECRET_KEY: ${AUTH_SECRET_KEY}
+      DB_NAME: auth_service
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
+      DB_HOST: auth_postgres
+      DB_PORT: 5432
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      HOST: ${HOST}
+      HOST_FRONTEND: ${HOST_FRONTEND}
+      DEFAULT_TENANT_HOST: ${DEFAULT_TENANT_HOST}
+      CELERY_BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      ROOT_API_KEY: ${ROOT_API_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_STORAGE_BUCKET_NAME: ${AWS_STORAGE_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      EMQX_USERNAME: ${EMQX_USERNAME}
+      EMQX_PASSWORD: ${EMQX_PASSWORD}
+    hostname: auth
+    links:
+      - rabbitmq
+      - auth_postgres
+    depends_on:
+      auth_postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -fsS http://localhost/auth/api/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+
+  # Dashboard database
+  dashboard_postgres:
+    container_name: dashboard_postgres
+    hostname: dashboard_postgres
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DASHBOARD_POSTGRES_PASSWORD}
+      - POSTGRES_DB=dashboard_service
+    ports:
+      - "5435:5432"
+    volumes:
+      - dashboard-postgres-vlm:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready --username=$$POSTGRES_USER && psql --username=$$POSTGRES_USER --list"
+      timeout: 10s
+      retries: 20
+
+  # Dashboard service
+  dashboard:
+    container_name: dashboard_service
+    image: ghcr.io/space-df/dashboard-service:latest
+    pull_policy: always
+    platform: linux/amd64
+    environment:
+      ENV: ${ENV}
+      SECRET_KEY: ${DASHBOARD_SECRET_KEY}
+      DB_NAME: dashboard_service
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${DASHBOARD_POSTGRES_PASSWORD}
+      DB_HOST: dashboard_postgres
+      DB_PORT: 5432
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      HOST: ${HOST}
+      DEFAULT_TENANT_HOST: ${DEFAULT_TENANT_HOST}
+      CELERY_BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq
+    hostname: dashboard
+    links:
+      - rabbitmq
+      - dashboard_postgres
+    depends_on:
+      dashboard_postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost/dashboard/api/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+
+  # Device database
+  device_postgres:
+    container_name: device_postgres
+    hostname: device_postgres
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DEVICE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=device_service
+    ports:
+      - "5436:5432"
+    volumes:
+      - device-postgres-vlm:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready --username=$$POSTGRES_USER && psql --username=$$POSTGRES_USER --list"
+      timeout: 10s
+      retries: 20
+
+  # Device service
+  device:
+    container_name: device_service
+    image: ghcr.io/space-df/device-service:latest
+    pull_policy: always
+    platform: linux/amd64
+    environment:
+      ENV: ${ENV}
+      SECRET_KEY: ${DEVICE_SECRET_KEY}
+      DB_NAME: device_service
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${DEVICE_POSTGRES_PASSWORD}
+      DB_HOST: device_postgres
+      DB_PORT: 5432
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      HOST: ${HOST}
+      DEFAULT_TENANT_HOST: ${DEFAULT_TENANT_HOST}
+      CELERY_BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq
+      EMQX_HOST: ${EMQX_HOST}
+      USERNAME: ${USERNAME}
+      PASSWORD: ${PASSWORD}
+      TELEMETRY_SERVICE_URL: ${TELEMETRY_SERVICE_URL:-http://telemetry}
+    hostname: device
+    links:
+      - rabbitmq
+      - device_postgres
+    depends_on:
+      device_postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -fsS http://localhost/device/api/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+
+  # Transformer service (Go) - RabbitMQ Consumer
+  transformer:
+    container_name: transformer_service
+    image: ghcr.io/space-df/transformer-service:latest
+    pull_policy: always
+    platform: linux/amd64
+    hostname: transformer
+    environment:
+      - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
+      - AMQP_CONSUMER_TAG=transformer-service
+      - AMQP_PREFETCH_COUNT=10
+      - AMQP_AUTO_ACK=false
+      - SERVER_LOG_LEVEL=info
+      - RAW_DATA_LOG_DIR=logs/raw_data
+      - RAW_DATA_ENABLE_FILE_LOG=true
+      - RAW_DATA_ENABLE_JSON_LOG=true
+      - RAW_DATA_MAX_FILE_SIZE=104857600
+      - ORG_EVENTS_EXCHANGE=${ORG_EVENTS_EXCHANGE:-org.events}
+      - ORG_EVENTS_QUEUE=${ORG_EVENTS_QUEUE:-transformer.org.events.queue}
+      - ORG_EVENTS_ROUTING_KEY=${ORG_EVENTS_ROUTING_KEY:-org.*}
+      - ORG_EVENTS_CONSUMER_TAG=${ORG_EVENTS_CONSUMER_TAG:-transformer-org-events}
+      - DEVICE_SERVICE_BASE_URL=http://device/api
+      - DEVICE_SERVICE_TIMEOUT_SECONDS=5
+      - DEVICE_CACHE_REDIS_ADDR=redis:6379
+      - DEVICE_CACHE_REDIS_DB=1
+      - DEVICE_CACHE_REDIS_PASSWORD=
+      - DEVICE_CACHE_REDIS_DIAL_TIMEOUT_MS=2000
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      emqx:
+        condition: service_started
+    links:
+      - rabbitmq
+      - emqx
+    restart: unless-stopped
+    volumes:
+      - ./transformer-service:/transformer-service
+      - transformer-logs:/app/logs
+
+  # Broker Bridge Service - AMQP to EMQX MQTT bridge
+  broker-bridge:
+    container_name: broker_bridge_service
+    image: ghcr.io/space-df/broker-bridge-service:latest
+    pull_policy: always
+    platform: linux/amd64
+    hostname: broker-bridge
+    environment:
+      - MQTT_BROKER=emqx
+      - MQTT_USERNAME=${MQTT_BROKER_BRIDGE_USERNAME}
+      - MQTT_PASSWORD=${MQTT_BROKER_BRIDGE_PASSWORD}
+      - MQTT_TOPICS=${MQTT_TOPICS}
+      - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
+      - AMQP_EXCHANGE=amq.topic
+      - ORG_EVENTS_EXCHANGE=${ORG_EVENTS_EXCHANGE:-org.events}
+      - ORG_EVENTS_QUEUE=${ORG_EVENTS_QUEUE:-broker-bridge.org.events.queue}
+      - ORG_EVENTS_ROUTING_KEY=${ORG_EVENTS_ROUTING_KEY:-org.*}
+      - ORG_EVENTS_CONSUMER_TAG=${ORG_EVENTS_CONSUMER_TAG:-broker-bridge-org-events}
+      - LOG_LEVEL=${BROKER_BRIDGE_LOG_LEVEL:-info}
+    depends_on:
+      - emqx
+      - rabbitmq
+    links:
+      - emqx
+      - rabbitmq
+    restart: unless-stopped
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  haproxy:
+    container_name: haproxy
+    build:
+      context: .
+      dockerfile: ./haproxy/Dockerfile
+    networks:
+      default:
+        aliases:
+          - ${ORG_SLUG}.haproxy
+    environment:
+      HOST: ${HOST}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+    hostname: haproxy
+    ports:
+      - "8000:3000"
+      - "443:443"
+      - "8884:8884"
+      - "8883:8883"
+    depends_on:
+      bootstrap:
+        condition: service_started
+      auth:
+        condition: service_started
+      dashboard:
+        condition: service_started
+      device:
+        condition: service_started
+      telemetry:
+        condition: service_started
+      mpa:
+        condition: service_started
+      docs:
+        condition: service_started
+    links:
+      - bootstrap
+      - auth
+      - dashboard
+      - device
+      - telemetry
+      - mpa
+      - docs
+    restart: unless-stopped
+    volumes:
+      - ./haproxy/config:/usr/local/etc/haproxy/config
+      - ./haproxy/handlers:/usr/local/etc/haproxy/handlers
+      - ./haproxy/routes:/usr/local/share/lua/5.4/routes
+      - ./haproxy/certs:/usr/local/etc/haproxy/certs:ro
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    hostname: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  # MPA Service
+  mpa:
+    container_name: mpa_service
+    image: ghcr.io/space-df/mpa-service:latest
+    pull_policy: always
+    platform: linux/amd64
+    hostname: mpa
+    environment:
+      - MQTT_BROKER=${MQTT_BROKER}
+      - MQTT_PORT=${MQTT_PORT}
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_CLIENT_ID=${MQTT_CLIENT_ID}
+      - MQTT_TOPIC=${MQTT_TOPIC}
+      - SERVER_PORT=80
+      - PROTOCOLS_WEBSOCKET_ENABLED=${PROTOCOLS_WEBSOCKET_ENABLED:-false}
+      - PROTOCOLS_CHIRPSTACK_ENABLED=${PROTOCOLS_CHIRPSTACK_ENABLED:-false}
+    volumes:
+      - ./mpa-service:/mpa-service
+    depends_on:
+      - emqx
+      - rabbitmq
+    links:
+      - emqx
+      - rabbitmq
+    restart: unless-stopped
+    healthcheck:
+      test: "curl --silent --fail http://localhost/health > /dev/null || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # TimescaleDB for telemetry service
+  timescaledb:
+    container_name: timescaledb
+    hostname: timescaledb
+    image: timescale/timescaledb:latest-pg17
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${TIMESCALEDB_PASSWORD:-postgres}
+      - POSTGRES_DB=spacedf_telemetry
+    ports:
+      - "5437:5432"
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready --username=$$POSTGRES_USER && psql --username=$$POSTGRES_USER --list"
+      timeout: 10s
+      retries: 20
+    restart: unless-stopped
+
+  # Telemetry Service
+  telemetry:
+    container_name: telemetry_service
+    hostname: telemetry
+    image: ghcr.io/space-df/telemetry-service:latest
+    pull_policy: always
+    platform: linux/amd64
+    environment:
+      - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
+      - DB_NAME=spacedf_telemetry
+      - DB_USER=postgres
+      - DB_PASSWORD=${TIMESCALEDB_PASSWORD:-postgres}
+      - DB_HOST=timescaledb
+      - DB_PORT=5432
+    ports:
+      - "8080:8080" # API port
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/api/telemetry/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  docs:
+    build:
+      context: .
+      dockerfile: ./docs/Dockerfile
+    container_name: docs
+    hostname: docs
+    links:
+      - auth
+      - dashboard
+      - device
+    depends_on:
+      auth:
+        condition: service_started
+      dashboard:
+        condition: service_started
+      device:
+        condition: service_started
+    volumes:
+      - ./docs:/docs
+
+  # Web Application
+  web:
+    image: ghcr.io/space-df/spacedf-web-app:latest
+    pull_policy: always
+    platform: linux/amd64
+    environment:
+      NEXTAUTH_URL: ${DASHBOARD_NEXTAUTH_URL}
+      MAPTILER_API_KEY: ${MAPTILER_API_KEY}
+      NEXTAUTH_SECRET: ${DASHBOARD_NEXTAUTH_SECRET}
+      AUTH_API: ${ASHBOARD_AUTH_API}
+      DASHBOARD_MQTT_USERNAME: ${DASHBOARD_MQTT_USERNAME}
+      DASHBOARD_MQTT_PASSWORD: ${DASHBOARD_MQTT_PASSWORD}
+      DASHBOARD_MQTT_PORT: ${DASHBOARD_MQTT_PORT}
+      DASHBOARD_MQTT_PROTOCOL: ${DASHBOARD_MQTT_PROTOCOL}
+      DASHBOARD_MQTT_BROKER: ${DASHBOARD_MQTT_BROKER}
+      DEBUG: "True"
+    ports:
+      - "3000:3000"
+    depends_on:
+      haproxy:
+        condition: service_started
+    restart: unless-stopped
+
+  # Admin Portal Application
+  auth-portal:
+    image: ghcr.io/space-df/spacedf-admin-portal:latest
+    pull_policy: always
+    platform: linux/amd64
+    environment:
+      NEXTAUTH_URL: ${PORTAL_NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${PORTAL_NEXTAUTH_SECRET}
+      AUTH_API: ${PORTAL_AUTH_API}
+      DEBUG: "True"
+    ports:
+      - "3001:3001"
+    depends_on:
+      haproxy:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  auth-postgres-vlm:
+  dashboard-postgres-vlm:
+  device-postgres-vlm:
+  emqx-data:
+  emqx-log:
+  emqx-etc:
+  redis_data:
+  transformer-logs:
+  rabbitmq_data:
+  timescaledb-data:
+  bootstrap-postgres-vlm:
