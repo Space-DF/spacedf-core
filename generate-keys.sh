@@ -26,6 +26,7 @@ env_vars = {
     'DASHBOARD_POSTGRES_PASSWORD': 'postgres',
     'DEVICE_POSTGRES_PASSWORD': 'postgres',
     'BOOTSTRAP_POSTGRES_PASSWORD': 'postgres',
+    'TIMESCALEDB_PASSWORD': 'postgres',
     'EMQX_USERNAME': 'user',
     'EMQX_PASSWORD': 'password123',
     'MQTT_BROKER_BRIDGE_PASSWORD': 'Default@1234',
