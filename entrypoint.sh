@@ -7,7 +7,7 @@ API_URL="${HOST}/docs"
 HOST_FRONTEND_ADMIN="${HOST_FRONTEND_ADMIN}"
 SCHEME="$(echo "$DASHBOARD_NEXTAUTH_URL" | sed -E 's#(https?://).*#\1#')"
 DOMAIN="$(echo "$DASHBOARD_NEXTAUTH_URL" | sed -E 's#https?://##')"
-HOST_FRONTEND="${SCHEME}${ORG_SLUG}.${DOMAIN}"
+HOST_FRONTEND="${SCHEME}spacedf.${DOMAIN}"
 
 clear
 echo -e "\033[38;5;208m"
@@ -27,6 +27,34 @@ echo
 # ===== Build & Start =====
 COMPOSE_FILE="./docker-compose.yml"
 PROJECT_NAME="spacedf-core"
+USERNAME_CHANGED=false
+PASSWORD_CHANGED=false
+
+if docker ps --format '{{.Names}}' | grep -q "^rabbitmq$"; then
+  EXISTING_USER=$(docker exec rabbitmq rabbitmqctl list_users --formatter json 2>/dev/null | grep -o '"user":"[^"]*"' | head -1 | cut -d'"' -f4)
+  
+  if [ -n "$EXISTING_USER" ] && [ "$EXISTING_USER" != "$RABBITMQ_DEFAULT_USER" ]; then
+    USERNAME_CHANGED=true
+  fi
+  
+  if [ -n "$EXISTING_USER" ] && ! docker exec rabbitmq rabbitmqctl authenticate_user "$EXISTING_USER" "$RABBITMQ_DEFAULT_PASS" &>/dev/null; then
+    PASSWORD_CHANGED=true
+  fi
+fi
+
+# If username changed → create new account and delete old
+if [ "$USERNAME_CHANGED" = true ]; then
+  docker exec rabbitmq rabbitmqctl add_user "$RABBITMQ_DEFAULT_USER" "$RABBITMQ_DEFAULT_PASS"
+  docker exec rabbitmq rabbitmqctl set_user_tags "$RABBITMQ_DEFAULT_USER" administrator
+  docker exec rabbitmq rabbitmqctl set_permissions -p / "$RABBITMQ_DEFAULT_USER" ".*" ".*" ".*"
+  docker exec rabbitmq rabbitmqctl delete_user "$EXISTING_USER"
+fi
+
+# Update password automatically
+if [ "$PASSWORD_CHANGED" = true ]; then
+  docker exec rabbitmq rabbitmqctl change_password "$RABBITMQ_DEFAULT_USER" "$RABBITMQ_DEFAULT_PASS"
+fi
+
 echo "Deploying SpaceDF Core..."
 echo "Stopping existing services (if running)..."
 docker compose -f "${COMPOSE_FILE}" -p "${PROJECT_NAME}" stop || true

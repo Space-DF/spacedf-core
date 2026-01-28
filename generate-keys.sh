@@ -31,7 +31,6 @@ env_vars = {
     'MQTT_BROKER_BRIDGE_PASSWORD': 'Default@1234',
     'MQTT_PASSWORD': 'Default@1234',
     'ORG_NAME': 'Default Organization',
-    'ORG_SLUG': 'default-org',
     'OWNER_EMAIL': 'admin@example.com',
     'OWNER_PASSWORD': 'changeme@Default123',
     'BOOTSTRAP_SECRET_KEY': os.environ['BSK'],
