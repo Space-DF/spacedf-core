@@ -118,7 +118,6 @@ services:
       EMQX_USERNAME: ${EMQX_USERNAME}
       EMQX_PASSWORD: ${EMQX_PASSWORD}
       ORG_NAME: ${ORG_NAME}
-      ORG_SLUG: ${ORG_SLUG}
       OWNER_EMAIL: ${OWNER_EMAIL}
       OWNER_PASSWORD: ${OWNER_PASSWORD}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
@@ -426,7 +425,7 @@ services:
     networks:
       default:
         aliases:
-          - ${ORG_SLUG}.haproxy
+          - spacedf.haproxy
     environment:
       HOST: ${HOST}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
