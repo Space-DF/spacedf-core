@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+
+# Check if .env file exists
+if [ ! -f .env ]; then
+  echo -e "\033[1;31mERROR: .env file not found!\033[0m"
+  echo -e "\033[0;33mYou can copy from .env.example if available:\033[0m"
+  echo -e "  cp .env.example .env"
+  exit 1
+fi
+
 set -a
 source .env
 set +a
@@ -54,6 +63,30 @@ fi
 if [ "$PASSWORD_CHANGED" = true ]; then
   docker exec rabbitmq rabbitmqctl change_password "$RABBITMQ_DEFAULT_USER" "$RABBITMQ_DEFAULT_PASS"
 fi
+
+sync_postgres_password() {
+  local container_name=$1
+  local new_password=$2
+  local db_user=${3:-postgres}
+  
+  if docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
+    for i in {1..10}; do
+      if docker exec "$container_name" pg_isready -U "$db_user" &>/dev/null; then
+        break
+      fi
+      sleep 1
+    done
+
+    docker exec "$container_name" psql -U "$db_user" -c "ALTER USER ${db_user} WITH PASSWORD '${new_password}';" &>/dev/null || true
+  fi
+}
+
+# Sync all PostgreSQL passwords from .env BEFORE stopping
+sync_postgres_password "device_postgres" "$DEVICE_POSTGRES_PASSWORD"
+sync_postgres_password "auth_postgres" "$AUTH_POSTGRES_PASSWORD"
+sync_postgres_password "dashboard_postgres" "$DASHBOARD_POSTGRES_PASSWORD"
+sync_postgres_password "bootstrap_postgres" "$BOOTSTRAP_POSTGRES_PASSWORD"
+sync_postgres_password "timescaledb" "$TIMESCALEDB_PASSWORD"
 
 echo "Deploying SpaceDF Core..."
 echo "Stopping existing services (if running)..."
