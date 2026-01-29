@@ -112,7 +112,6 @@ services:
     container_name: bootstrap_service
     image: ghcr.io/space-df/bootstrap-service:latest
     pull_policy: always
-    platform: linux/amd64
     environment:
       ENV: ${ENV}
       EMQX_USERNAME: ${EMQX_USERNAME}
@@ -181,7 +180,6 @@ services:
     container_name: auth_service
     image: ghcr.io/space-df/auth-service:latest
     pull_policy: always
-    platform: linux/amd64
     environment:
       ENV: ${ENV}
       SECRET_KEY: ${AUTH_SECRET_KEY}
@@ -252,7 +250,6 @@ services:
     container_name: dashboard_service
     image: ghcr.io/space-df/dashboard-service:latest
     pull_policy: always
-    platform: linux/amd64
     environment:
       ENV: ${ENV}
       SECRET_KEY: ${DASHBOARD_SECRET_KEY}
@@ -309,7 +306,6 @@ services:
     container_name: device_service
     image: ghcr.io/space-df/device-service:latest
     pull_policy: always
-    platform: linux/amd64
     environment:
       ENV: ${ENV}
       SECRET_KEY: ${DEVICE_SECRET_KEY}
@@ -349,7 +345,6 @@ services:
     container_name: transformer_service
     image: ghcr.io/space-df/transformer-service:latest
     pull_policy: always
-    platform: linux/amd64
     hostname: transformer
     environment:
       - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
@@ -389,7 +384,6 @@ services:
     container_name: broker_bridge_service
     image: ghcr.io/space-df/broker-bridge-service:latest
     pull_policy: always
-    platform: linux/amd64
     hostname: broker-bridge
     environment:
       - MQTT_BROKER=emqx
@@ -481,7 +475,6 @@ services:
     container_name: mpa_service
     image: ghcr.io/space-df/mpa-service:latest
     pull_policy: always
-    platform: linux/amd64
     hostname: mpa
     environment:
       - MQTT_BROKER=${MQTT_BROKER}
@@ -534,7 +527,6 @@ services:
     hostname: telemetry
     image: ghcr.io/space-df/telemetry-service:latest
     pull_policy: always
-    platform: linux/amd64
     environment:
       - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
       - DB_NAME=spacedf_telemetry
@@ -589,7 +581,6 @@ services:
   web:
     image: ghcr.io/space-df/spacedf-web-app:latest
     pull_policy: always
-    platform: linux/amd64
     environment:
       NEXTAUTH_URL: ${DASHBOARD_NEXTAUTH_URL}
       MAPTILER_API_KEY: ${MAPTILER_API_KEY}
@@ -612,7 +603,6 @@ services:
   auth-portal:
     image: ghcr.io/space-df/spacedf-admin-portal:latest
     pull_policy: always
-    platform: linux/amd64
     environment:
       NEXTAUTH_URL: ${PORTAL_NEXTAUTH_URL}
       NEXTAUTH_SECRET: ${PORTAL_NEXTAUTH_SECRET}
