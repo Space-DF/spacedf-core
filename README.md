@@ -9,7 +9,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone -b dev --recurse-submodules git@github.com:Space-DF/spacedf-backend.git
+git clone -b dev --recurse-submodules git@github.com:Space-DF/spacedf-core.git
 cd spacedf-backend
 git submodule update --init --recursive
 ```
