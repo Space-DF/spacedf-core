@@ -1,0 +1,36 @@
+[submodule "bootstrap-service"]
+	path = bootstrap-service
+	url = git@github.com:Space-DF/bootstrap-service.git
+	branch = dev
+[submodule "auth-service"]
+	path = auth-service
+	url = git@github.com:Space-DF/auth-service.git
+	branch = dev
+[submodule "device-service"]
+	path = device-service
+	url = git@github.com:Space-DF/device-service.git
+	branch = dev
+[submodule "dashboard-service"]
+	path = dashboard-service
+	url = git@github.com:Space-DF/dashboard-service.git
+	branch = dev
+[submodule "django-common-utils"]
+	path = django-common-utils
+	url = git@github.com:Space-DF/django-common-utils.git
+	branch = dev
+[submodule "transformer-service"]
+	path = transformer-service
+	url = git@github.com:Space-DF/transformer-service.git
+	branch = dev
+[submodule "mpa-service"]
+	path = mpa-service
+	url = git@github.com:Space-DF/mpa-service.git
+	branch = dev
+[submodule "broker-bridge-service"]
+	path = broker-bridge-service
+	url = git@github.com:Space-DF/broker-bridge-service.git
+	branch = dev
+[submodule "telemetry-service"]
+	path = telemetry-service
+	url = git@github.com:Space-DF/telemetry-service.git
+	branch = dev
