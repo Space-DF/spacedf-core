@@ -110,7 +110,7 @@ services:
   # bootstrap service
   bootstrap:
     container_name: bootstrap_service
-    image: ghcr.io/space-df/bootstrap-service:latest
+    image: ghcr.io/space-df/bootstrap-service:stable
     pull_policy: always
     environment:
       ENV: ${ENV}
@@ -178,7 +178,7 @@ services:
   # Auth service
   auth:
     container_name: auth_service
-    image: ghcr.io/space-df/auth-service:latest
+    image: ghcr.io/space-df/auth-service:stable
     pull_policy: always
     environment:
       ENV: ${ENV}
@@ -248,7 +248,7 @@ services:
   # Dashboard service
   dashboard:
     container_name: dashboard_service
-    image: ghcr.io/space-df/dashboard-service:latest
+    image: ghcr.io/space-df/dashboard-service:stable
     pull_policy: always
     environment:
       ENV: ${ENV}
@@ -304,7 +304,7 @@ services:
   # Device service
   device:
     container_name: device_service
-    image: ghcr.io/space-df/device-service:latest
+    image: ghcr.io/space-df/device-service:stable
     pull_policy: always
     environment:
       ENV: ${ENV}
@@ -343,7 +343,7 @@ services:
   # Transformer service (Go) - RabbitMQ Consumer
   transformer:
     container_name: transformer_service
-    image: ghcr.io/space-df/transformer-service:latest
+    image: ghcr.io/space-df/transformer-service:stable
     pull_policy: always
     hostname: transformer
     environment:
@@ -382,7 +382,7 @@ services:
   # Broker Bridge Service - AMQP to EMQX MQTT bridge
   broker-bridge:
     container_name: broker_bridge_service
-    image: ghcr.io/space-df/broker-bridge-service:latest
+    image: ghcr.io/space-df/broker-bridge-service:stable
     pull_policy: always
     hostname: broker-bridge
     environment:
@@ -425,7 +425,7 @@ services:
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
     hostname: haproxy
     ports:
-      - "8000:3000"
+      - "80:3000"
       - "443:443"
       - "8884:8884"
       - "8883:8883"
@@ -473,7 +473,7 @@ services:
   # MPA Service
   mpa:
     container_name: mpa_service
-    image: ghcr.io/space-df/mpa-service:latest
+    image: ghcr.io/space-df/mpa-service:stable
     pull_policy: always
     hostname: mpa
     environment:
@@ -525,7 +525,7 @@ services:
   telemetry:
     container_name: telemetry_service
     hostname: telemetry
-    image: ghcr.io/space-df/telemetry-service:latest
+    image: ghcr.io/space-df/telemetry-service:stable
     pull_policy: always
     environment:
       - AMQP_BROKER_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
@@ -579,7 +579,7 @@ services:
 
   # Web Application
   web:
-    image: ghcr.io/space-df/spacedf-web-app:latest
+    image: ghcr.io/space-df/spacedf-web-app:stable
     pull_policy: always
     environment:
       NEXTAUTH_URL: ${DASHBOARD_NEXTAUTH_URL}
@@ -601,7 +601,7 @@ services:
 
   # Admin Portal Application
   auth-portal:
-    image: ghcr.io/space-df/spacedf-admin-portal:latest
+    image: ghcr.io/space-df/spacedf-admin-portal:stable
     pull_policy: always
     environment:
       NEXTAUTH_URL: ${PORTAL_NEXTAUTH_URL}
