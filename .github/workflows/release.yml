@@ -1,0 +1,32 @@
+name: Dispatch Release
+
+on:
+  release:
+    types: [ published ]
+    branches: [ main ]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - repo: Space-DF/spacedf-docs
+            event: release-spacedf-docs
+
+    steps:
+      - name: Dispatch Release to ${{ matrix.target.repo }}
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_FOR_AUTH_SERVICE }}
+          repository: ${{ matrix.target.repo }}
+          event-type: ${{ matrix.target.event }}
+          client-payload: |
+            {
+              "ref": "${{ github.ref }}",
+              "sha": "${{ github.sha }}",
+              "release_tag": "${{ github.event.release.tag_name }}",
+              "release_name": "${{ github.event.release.name }}",
+              "release_body": ${{ toJson(github.event.release.body) }},
+              "release_target_commitish": "${{ github.event.release.target_commitish }}"
+            }
