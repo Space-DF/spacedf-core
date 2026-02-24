@@ -18,7 +18,7 @@ jobs:
       - name: Dispatch Release to ${{ matrix.target.repo }}
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.PAT_FOR_AUTH_SERVICE }}
+          token: ${{ secrets.PAT_FOR_DISPATCH_RELEASE }}
           repository: ${{ matrix.target.repo }}
           event-type: ${{ matrix.target.event }}
           client-payload: |
