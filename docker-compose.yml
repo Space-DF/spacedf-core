@@ -425,7 +425,7 @@ services:
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
     hostname: haproxy
     ports:
-      - "80:3000"
+      - "8000:3000"
       - "443:443"
       - "8884:8884"
       - "8883:8883"
