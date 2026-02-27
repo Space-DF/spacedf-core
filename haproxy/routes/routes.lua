@@ -5,6 +5,7 @@ device_routes = require("routes.device")
 mpa_routes = require("routes.mpa")
 telemetry_routes = require("routes.telemetry")
 bootstrap_routes = require("routes.bootstrap")
+transformer_routes = require("routes.transformer")
 
 routes = {}
 for k, v in pairs(docs_routes) do routes[k] = v end
@@ -14,5 +15,6 @@ for k, v in pairs(device_routes) do routes[k] = v end
 for k, v in pairs(mpa_routes) do routes[k] = v end
 for k, v in pairs(telemetry_routes) do routes[k] = v end
 for k, v in pairs(bootstrap_routes) do routes[k] = v end
+for k, v in pairs(transformer_routes) do routes[k] = v end
 
 return routes
