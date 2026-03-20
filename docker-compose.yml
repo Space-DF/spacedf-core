@@ -287,7 +287,7 @@ services:
   device_postgres:
     container_name: device_postgres
     hostname: device_postgres
-    image: postgres:15
+    image: postgis/postgis:15-3.4
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DEVICE_POSTGRES_PASSWORD}
@@ -506,7 +506,7 @@ services:
   timescaledb:
     container_name: timescaledb
     hostname: timescaledb
-    image: timescale/timescaledb:latest-pg17
+    image: timescale/timescaledb-ha:pg16
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${TIMESCALEDB_PASSWORD:-postgres}
@@ -514,7 +514,7 @@ services:
     ports:
       - "5437:5432"
     volumes:
-      - timescaledb-data:/var/lib/postgresql/data
+      - timescaledb-data:/home/postgres/pgdata
     healthcheck:
       test: "pg_isready --username=$$POSTGRES_USER && psql --username=$$POSTGRES_USER --list"
       timeout: 10s
@@ -567,12 +567,15 @@ services:
       - auth
       - dashboard
       - device
+      - telemetry
     depends_on:
       auth:
         condition: service_started
       dashboard:
         condition: service_started
       device:
+        condition: service_started
+      telemetry:
         condition: service_started
     volumes:
       - ./docs:/docs
