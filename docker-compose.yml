@@ -506,7 +506,7 @@ services:
   timescaledb:
     container_name: timescaledb
     hostname: timescaledb
-    image: timescale/timescaledb:latest-pg17
+    image: timescale/timescaledb-ha:pg16
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${TIMESCALEDB_PASSWORD:-postgres}
@@ -514,7 +514,7 @@ services:
     ports:
       - "5437:5432"
     volumes:
-      - timescaledb-data:/var/lib/postgresql/data
+      - timescaledb-data:/home/postgres/pgdata
     healthcheck:
       test: "pg_isready --username=$$POSTGRES_USER && psql --username=$$POSTGRES_USER --list"
       timeout: 10s
