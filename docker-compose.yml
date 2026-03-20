@@ -567,12 +567,15 @@ services:
       - auth
       - dashboard
       - device
+      - telemetry
     depends_on:
       auth:
         condition: service_started
       dashboard:
         condition: service_started
       device:
+        condition: service_started
+      telemetry:
         condition: service_started
     volumes:
       - ./docs:/docs
