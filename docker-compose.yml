@@ -287,7 +287,7 @@ services:
   device_postgres:
     container_name: device_postgres
     hostname: device_postgres
-    image: postgres:15
+    image: postgis/postgis:15-3.4
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DEVICE_POSTGRES_PASSWORD}
