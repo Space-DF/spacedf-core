@@ -220,6 +220,18 @@ Each service requires a unique secret key for encryption and data protection:
 **MQTT_TOPIC** - Topic pattern for MPA Service to subscribe/publish. Use `{tenant}` placeholder for dynamic tenant names.
 - Default: `tenant/{tenant}/device/data`
 
+**PROTOCOLS_CHIRPSTACK_ENABLED** - Enable or disable ChirpStack protocol support in MPA Service.
+- Default: `true`
+- Values: `true` | `false`
+
+**PROTOCOLS_TTN_ENABLED** - Enable or disable The Things Network (TTN) protocol support in MPA Service.
+- Default: `true`
+- Values: `true` | `false`
+
+**PROTOCOLS_HELIUM_ENABLED** - Enable or disable Helium protocol support in MPA Service.
+- Default: `false`
+- Values: `true` | `false`
+
 #### Broker Bridge Configuration
 
 **MQTT_BROKER_BRIDGE_USERNAME** - MQTT username for Broker Bridge Service.
