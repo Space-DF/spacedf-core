@@ -287,7 +287,7 @@ services:
   device_postgres:
     container_name: device_postgres
     hostname: device_postgres
-    image: postgis/postgis:15-3.4
+    image: postgres:15
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${DEVICE_POSTGRES_PASSWORD}
@@ -375,6 +375,12 @@ services:
       - rabbitmq
       - emqx
     restart: unless-stopped
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     volumes:
       - ./transformer-service:/transformer-service
       - transformer-logs:/app/logs
@@ -442,6 +448,8 @@ services:
         condition: service_started
       mpa:
         condition: service_started
+      transformer:
+        condition: "service_started"
       docs:
         condition: service_started
     links:
@@ -484,8 +492,9 @@ services:
       - MQTT_CLIENT_ID=${MQTT_CLIENT_ID}
       - MQTT_TOPIC=${MQTT_TOPIC}
       - SERVER_PORT=80
-      - PROTOCOLS_WEBSOCKET_ENABLED=${PROTOCOLS_WEBSOCKET_ENABLED:-false}
-      - PROTOCOLS_CHIRPSTACK_ENABLED=${PROTOCOLS_CHIRPSTACK_ENABLED:-false}
+      - PROTOCOLS_CHIRPSTACK_ENABLED=${PROTOCOLS_CHIRPSTACK_ENABLED:-true}
+      - PROTOCOLS_TTN_ENABLED=${PROTOCOLS_TTN_ENABLED:-true}
+      - PROTOCOLS_HELIUM_ENABLED=${PROTOCOLS_HELIUM_ENABLED:-false}
     volumes:
       - ./mpa-service:/mpa-service
     depends_on:

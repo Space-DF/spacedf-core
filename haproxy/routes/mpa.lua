@@ -2,7 +2,57 @@ routes = {
   -- --------------
   -- MPA Service Routes
   -- --------------
-  ["^/http/?.*$"] = {
+  ["^/chirpstack/http/?.*$"] = {
+    GET = {
+      service = "mpa",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+    POST = {
+      service = "mpa",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+    PUT = {
+      service = "mpa",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+    PATCH = {
+      service = "mpa",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+    DELETE = {
+      service = "mpa",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+    OPTIONS = {
+      service = "mpa",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/ttn/http/?.*$"] = {
     GET = {
       service = "mpa",
       auth_required = false,
@@ -136,24 +186,6 @@ routes = {
       is_root_user_api = false,
     },
     DELETE = {
-      service = "mpa",
-      auth_required = false,
-      role_required = nil,
-      space_required = false,
-      organization_required = false,
-      is_root_user_api = false,
-    },
-    OPTIONS = {
-      service = "mpa",
-      auth_required = false,
-      role_required = nil,
-      space_required = false,
-      organization_required = false,
-      is_root_user_api = false,
-    },
-  },
-  ["^/lorawan/[^/]+/[^/]+/?.*$"] = {
-    POST = {
       service = "mpa",
       auth_required = false,
       role_required = nil,
