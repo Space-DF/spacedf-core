@@ -343,7 +343,7 @@ routes = {
       is_root_user_api = false,
     },
   },
-  ["^/api/buildings/[0-9a-f-]+/floors/[0-9a-f-]+/?$"] = {
+  ["^/api/floors/[0-9a-f-]+/?$"] = {
     GET = {
       service = "device",
       auth_required = true,
@@ -377,7 +377,7 @@ routes = {
       is_root_user_api = false,
     },
   },
-  ["^/api/floors/[0-9a-f-]+/areas/?$"] = {
+  ["^/api/areas/[0-9a-f-]+/?$"] = {
     GET = {
       service = "device",
       auth_required = true,
