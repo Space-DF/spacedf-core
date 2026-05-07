@@ -185,6 +185,24 @@ routes = {
       is_root_user_api = false,
     },
   },
+  ["^/api/telemetry/v1/notifications/subscribe/?$"] = {
+    POST = {
+      service = "telemetry",
+      auth_required = true,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    }
+  },
+  ["^/api/telemetry/v1/notifications/subscribe/[0-9a-f-]+/?$"] = {
+    DELETE = {
+      service = "telemetry",
+      auth_required = true,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
 }
 
 return routes
