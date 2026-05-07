@@ -20,6 +20,16 @@ routes = {
           is_root_user_api = false,
         },
       },
+      ["^/api/device%-spaces/device/[0-9a-f-]+/?$"] = {
+        GET = {
+          service = "device",
+          auth_required = true,
+          role_required = "Viewer",
+          space_required = true,
+          organization_required = false,
+          is_root_user_api = false,
+        }
+      },
       ["^/api/device%-spaces/[0-9a-f-]+/?$"] = {
         PUT = {
           service = "device",
