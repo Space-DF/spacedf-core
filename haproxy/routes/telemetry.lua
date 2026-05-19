@@ -11,6 +11,15 @@ routes = {
       is_root_user_api = false,
     },
   },
+  ["^/api/telemetry/v1/entities/bulk%-update/?$"] = {
+    PUT = {
+      service = "telemetry",
+      auth_required = true,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
   ["^/api/telemetry/v1/alerts/?$"] = {
     GET = {
       service = "telemetry",
