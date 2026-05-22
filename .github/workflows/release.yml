@@ -3,7 +3,7 @@ name: Dispatch Release
 on:
   release:
     types: [ published ]
-    branches: [ main ]
+    branches: [ update-release ]
 
 jobs:
   dispatch:
@@ -12,21 +12,42 @@ jobs:
       matrix:
         target:
           - repo: Space-DF/spacedf-docs
-            event: release-spacedf-docs
+            event: release-spacedf-docs111
 
     steps:
-      - name: Dispatch Release to ${{ matrix.target.repo }}
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.PAT_FOR_DISPATCH_RELEASE }}
-          repository: ${{ matrix.target.repo }}
-          event-type: ${{ matrix.target.event }}
-          client-payload: |
-            {
-              "ref": "${{ github.ref }}",
-              "sha": "${{ github.sha }}",
-              "release_tag": "${{ github.event.release.tag_name }}",
-              "release_name": "${{ github.event.release.name }}",
-              "release_body": ${{ toJson(github.event.release.body) }},
-              "release_target_commitish": "${{ github.event.release.target_commitish }}"
+      - name: Extract release description
+        id: extract_description
+        run: |
+          BODY='${{ github.event.release.body }}'
+
+          DESCRIPTION=$(printf "%s" "$BODY" | perl -0777 -ne '
+            if (/^#.*?\n\n(.*?)(?=\n---)/s) {
+              $text = $1;
+              $text =~ s/^\s+|\s+$//g;
+              print $text;
             }
+          ')
+
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Print description
+        run: |
+          echo "${{ steps.extract_description.outputs.description }}"
+
+#      - name: Dispatch Release to ${{ matrix.target.repo }}
+#        uses: peter-evans/repository-dispatch@v2
+#        with:
+#          token: ${{ secrets.PAT_FOR_DISPATCH_RELEASE }}
+#          repository: ${{ matrix.target.repo }}
+#          event-type: ${{ matrix.target.event }}
+#          client-payload: |
+#            {
+#              "ref": "${{ github.ref }}",
+#              "sha": "${{ github.sha }}",
+#              "release_tag": "${{ github.event.release.tag_name }}",
+#              "release_name": "${{ github.event.release.name }}",
+#              "release_body": ${{ toJson(github.event.release.body) }},
+#              "release_description": ${{ toJson(steps.extract_description.outputs.description) }},
+#              "release_target_commitish": "${{ github.event.release.target_commitish }}"
+#            }
