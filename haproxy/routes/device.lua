@@ -64,6 +64,26 @@ routes = {
           is_root_user_api = false,
         },
       },
+      ["^/api/public/device%-spaces/?$"] = {
+        GET = {
+          service = "device",
+          auth_required = false,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = false,
+        },
+      },
+      ["^/api/public/device%-spaces/[0-9a-f-]+/?$"] = {
+        GET = {
+          service = "device",
+          auth_required = false,
+          role_required = nil,
+          space_required = false,
+          organization_required = true,
+          is_root_user_api = false,
+        },
+      },
       ["^/api/devices/bulk%-create/?$"] = {
         POST = {
           service = "device",
