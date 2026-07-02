@@ -151,6 +151,34 @@ routes = {
       is_root_user_api = false,
     },
   },
+  ["^/api/custom%-pages/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = false,
+      role_required = "Viewer",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    }
+  },
+  ["^/api/custom%-pages/[0-9a-f-]+/?$"] = {
+    PUT = {
+      service = "console",
+      auth_required = false,
+      role_required = "Editor",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    },
+    PATCH = {
+      service = "console",
+      auth_required = false,
+      role_required = "Editor",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    }
+  },
 }
 
 return routes
