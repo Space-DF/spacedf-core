@@ -2,6 +2,34 @@ routes = {
   -- --------------
   -- Auth
   -- --------------
+  ["^/silk/auth/?$"] = {
+    GET = {
+      service = "auth",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/silk/auth/.*$"] = {
+    GET = {
+      service = "auth",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+    POST = {
+      service = "auth",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
   ["^/api/auth/login/?$"] = {
     POST = {
       service = "auth",

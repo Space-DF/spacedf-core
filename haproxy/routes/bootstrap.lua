@@ -2,6 +2,44 @@ routes = {
   -- --------------
   -- Bootstrap
   -- --------------
+  ["^/silk/bootstrap/?$"] = {
+    GET = {
+      service = "bootstrap",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/silk/bootstrap/.*$"] = {
+    GET = {
+      service = "bootstrap",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+    POST = {
+      service = "bootstrap",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/static/silk/.*$"] = {
+    GET = {
+      service = "bootstrap",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
   ["^/api/bootstrap/auth/login/?$"] = {
     POST = {
       service = "bootstrap",
@@ -153,7 +191,7 @@ routes = {
   },
   ["^/api/custom%-pages/?$"] = {
     GET = {
-      service = "console",
+      service = "bootstrap",
       auth_required = false,
       role_required = "Viewer",
       space_required = false,
@@ -163,7 +201,7 @@ routes = {
   },
   ["^/api/custom%-pages/[0-9a-f-]+/?$"] = {
     PUT = {
-      service = "console",
+      service = "bootstrap",
       auth_required = false,
       role_required = "Editor",
       space_required = false,
@@ -171,7 +209,7 @@ routes = {
       is_root_user_api = true,
     },
     PATCH = {
-      service = "console",
+      service = "bootstrap",
       auth_required = false,
       role_required = "Editor",
       space_required = false,
