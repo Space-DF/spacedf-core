@@ -84,6 +84,15 @@ routes = {
       is_root_user_api = false,
     },
   },
+  ["^/api/telemetry/v1/activity%-logs/?$"] = {
+    GET = {
+      service = "telemetry",
+      auth_required = true,
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    },
+  },
   ["^/api/telemetry/v1/events/device/[0-9a-f-]+/?$"] = {
     GET = {
       service = "telemetry",
