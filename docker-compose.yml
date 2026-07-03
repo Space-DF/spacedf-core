@@ -1,6 +1,28 @@
+x-logging-small: &logging-small
+  logging:
+    driver: local
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+x-logging-medium: &logging-medium
+  logging:
+    driver: local
+    options:
+      max-size: "50m"
+      max-file: "5"
+
+x-logging-large: &logging-large
+  logging:
+    driver: local
+    options:
+      max-size: "100m"
+      max-file: "10"
+
 services:
   # RabbitMQ
   rabbitmq:
+    <<: *logging-small
     container_name: rabbitmq
     hostname: rabbitmq
     image: rabbitmq:3-management
@@ -27,6 +49,7 @@ services:
 
   # EMQX
   emqx:
+    <<: *logging-small
     container_name: emqx
     hostname: emqx
     build:
@@ -91,6 +114,7 @@ services:
       retries: 5
 
   bootstrap_postgres:
+    <<: *logging-small
     container_name: bootstrap_postgres
     hostname: bootstrap_postgres
     image: postgres:15
@@ -110,6 +134,7 @@ services:
 
   # bootstrap service
   bootstrap:
+    <<: *logging-medium
     container_name: bootstrap_service
     image: ghcr.io/space-df/bootstrap-service:stable
     pull_policy: always
@@ -162,6 +187,7 @@ services:
 
   # Auth database
   auth_postgres:
+    <<: *logging-small
     container_name: auth_postgres
     hostname: auth_postgres
     image: postgres:15
@@ -180,6 +206,7 @@ services:
 
   # Auth service
   auth:
+    <<: *logging-medium
     container_name: auth_service
     image: ghcr.io/space-df/auth-service:stable
     pull_policy: always
@@ -233,6 +260,7 @@ services:
 
   # Dashboard database
   dashboard_postgres:
+    <<: *logging-small
     container_name: dashboard_postgres
     hostname: dashboard_postgres
     image: postgres:15
@@ -251,6 +279,7 @@ services:
 
   # Dashboard service
   dashboard:
+    <<: *logging-medium
     container_name: dashboard_service
     image: ghcr.io/space-df/dashboard-service:stable
     pull_policy: always
@@ -290,6 +319,7 @@ services:
 
   # Device database
   device_postgres:
+    <<: *logging-small
     container_name: device_postgres
     hostname: device_postgres
     image: postgres:15
@@ -308,6 +338,7 @@ services:
 
   # Device service
   device:
+    <<: *logging-medium
     container_name: device_service
     image: ghcr.io/space-df/device-service:stable
     pull_policy: always
@@ -352,6 +383,7 @@ services:
 
   # Transformer service (Go) - RabbitMQ Consumer
   transformer:
+    <<: *logging-large
     container_name: transformer_service
     image: ghcr.io/space-df/transformer-service:stable
     pull_policy: always
@@ -397,6 +429,7 @@ services:
 
   # Broker Bridge Service - AMQP to EMQX MQTT bridge
   broker-bridge:
+    <<: *logging-medium
     container_name: broker_bridge_service
     image: ghcr.io/space-df/broker-bridge-service:stable
     pull_policy: always
@@ -428,6 +461,7 @@ services:
       start_period: 30s
 
   haproxy:
+    <<: *logging-small
     container_name: haproxy
     build:
       context: .
@@ -478,6 +512,7 @@ services:
       - ./haproxy/certs:/usr/local/etc/haproxy/certs:ro
 
   redis:
+    <<: *logging-small
     image: redis:latest
     container_name: redis
     hostname: redis
@@ -490,6 +525,7 @@ services:
 
   # MPA Service
   mpa:
+    <<: *logging-small
     container_name: mpa_service
     image: ghcr.io/space-df/mpa-service:stable
     pull_policy: always
@@ -523,6 +559,7 @@ services:
 
   # TimescaleDB for telemetry service
   timescaledb:
+    <<: *logging-small
     container_name: timescaledb
     hostname: timescaledb
     image: timescale/timescaledb-ha:pg16
@@ -542,6 +579,7 @@ services:
 
   # Telemetry Service
   telemetry:
+    <<: *logging-large
     container_name: telemetry_service
     hostname: telemetry
     image: ghcr.io/space-df/telemetry-service:stable
@@ -581,6 +619,7 @@ services:
       start_period: 120s
 
   docs:
+    <<: *logging-small
     build:
       context: .
       dockerfile: ./docs/Dockerfile
