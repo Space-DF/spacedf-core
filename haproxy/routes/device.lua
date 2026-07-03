@@ -2,6 +2,44 @@ routes = {
     -- --------------
     -- Device
     -- --------------
+    ["^/silk/device/?$"] = {
+    GET = {
+      service = "device",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/silk/device/.*$"] = {
+    GET = {
+      service = "device",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+    POST = {
+      service = "device",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/device/static/silk/.*$"] = {
+    GET = {
+      service = "device",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
   ["^/api/device%-spaces/?$"] = {
     POST = {
       service = "device",

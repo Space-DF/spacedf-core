@@ -2,6 +2,44 @@ routes = {
   -- --------------
   -- Dashboard
   -- --------------
+  ["^/silk/dashboard/?$"] = {
+    GET = {
+      service = "dashboard",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/silk/dashboard/.*$"] = {
+    GET = {
+      service = "dashboard",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+    POST = {
+      service = "dashboard",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/dashboard/static/silk/.*$"] = {
+    GET = {
+      service = "dashboard",
+      auth_required = false,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
   ["^/api/dashboards/?$"] = {
     GET = {
       service = "dashboard",
