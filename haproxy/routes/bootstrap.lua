@@ -240,6 +240,26 @@ routes = {
       is_root_user_api = true,
     },
   },
+  ["^/api/contact%-sales/?$"] = {
+    POST = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = true,
+    },
+  },
+  ["^/api/contact%-sales/status/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = true,
+    },
+  },
 }
 
 return routes
