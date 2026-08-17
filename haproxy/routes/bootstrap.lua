@@ -217,6 +217,29 @@ routes = {
       is_root_user_api = true,
     }
   },
+  -- --------------
+  -- Plans (Billing)
+  -- --------------
+  ["^/api/plans/[%w_%-]+/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/api/plans/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = true,
+    },
+  },
 }
 
 return routes
