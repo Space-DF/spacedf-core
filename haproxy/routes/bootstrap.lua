@@ -217,6 +217,124 @@ routes = {
       is_root_user_api = true,
     }
   },
+  -- --------------
+  -- Plans (Billing)
+  -- --------------
+  ["^/api/plans/[%w_%-]+/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/api/plans/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = true,
+    },
+  },
+  ["^/api/contact%-sales/?$"] = {
+    POST = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = true,
+    },
+  },
+  ["^/api/contact%-sales/status/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = true,
+    },
+  },
+  -- ---------------
+  -- Monitoring
+  -- ---------------
+  ["^/api/console/organizations/monitoring/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = "Viewer",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    },
+    POST = {
+      service = "console",
+      auth_required = true,
+      role_required = "Editor",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    },
+  },
+  ["^/api/console/organizations/monitoring/[0-9a-f-]+/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = "Viewer",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    },
+    PUT = {
+      service = "console",
+      auth_required = true,
+      role_required = "Editor",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    },
+    PATCH = {
+      service = "console",
+      auth_required = true,
+      role_required = "Editor",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    },
+    DELETE = {
+      service = "console",
+      auth_required = true,
+      role_required = "Admin",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    },
+  },
+  ["^/api/organizations/monitoring/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
+  ["^/api/organizations/monitoring/[0-9a-f-]+/?$"] = {
+    GET = {
+      service = "console",
+      auth_required = true,
+      role_required = nil,
+      space_required = false,
+      organization_required = false,
+      is_root_user_api = false,
+    },
+  },
 }
 
 return routes
