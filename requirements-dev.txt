@@ -1,9 +1,9 @@
 # Core
-Django==5.0.6
+Django==5.2.16
 django-environ==0.11.2
 gunicorn==22.0.0
 gevent==24.2.1
-django_tenants==3.6.1
+django_tenants==3.10.2
 celery==5.4.0
 cryptography==50.0.0
 authlib==1.6.12
@@ -14,12 +14,12 @@ psycopg2-binary==2.9.9
 
 # Rest apis
 djangorestframework==3.15.2
-djangorestframework_simplejwt==5.3.1
+djangorestframework_simplejwt==5.5.1
 django-cors-headers==4.4.0
 drf-yasg==1.21.7
 whitenoise==6.7.0
 django-filter==24.2
-requests==2.32.3
+requests==2.33.0
 
 
 # Code quality
@@ -33,7 +33,7 @@ pre-commit==3.7.1
 django-redis==5.4.0
 
 # all auth
-django-allauth==65.1.0
+django-allauth==65.14.1
 
 # boto3
 boto3==1.37.13
