@@ -189,6 +189,16 @@ routes = {
       is_root_user_api = false,
     },
   },
+  ["^/api/custom%-emails/?$"] = {
+    GET = {
+      service = "bootstrap",
+      auth_required = false,
+      role_required = "Viewer",
+      space_required = false,
+      organization_required = true,
+      is_root_user_api = true,
+    }
+  },
   ["^/api/custom%-pages/?$"] = {
     GET = {
       service = "bootstrap",
@@ -220,7 +230,7 @@ routes = {
   -- ---------------
   -- Monitoring
   -- ---------------
-  ["^/api/console/organizations/monitoring/?$"] = {
+  ["^/api/bootstrap/organizations/monitoring/?$"] = {
     GET = {
       service = "bootstrap",
       auth_required = true,
@@ -238,7 +248,7 @@ routes = {
       is_root_user_api = true,
     },
   },
-  ["^/api/console/organizations/monitoring/[0-9a-f-]+/?$"] = {
+  ["^/api/bootstrap/organizations/monitoring/[0-9a-f-]+/?$"] = {
     GET = {
       service = "bootstrap",
       auth_required = true,
