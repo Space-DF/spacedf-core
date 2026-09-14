@@ -1,0 +1,18 @@
+# Keeps key material and secrets out of any build context.
+
+.git
+**/.git
+
+plans/
+signoz/
+deployments/
+
+**/certs/
+**/.env
+**/.env.*
+
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/.venv
+**/.DS_Store
